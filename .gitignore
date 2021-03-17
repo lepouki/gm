@@ -1,2 +1,7 @@
+# Editor cache.
 .idea/
+.vscode/
+
+# Build directories.
+build/
 cmake-build-*/

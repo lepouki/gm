@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.17)
 project(gm C)
 
-set(CMAKE_C_STANDARD 99)
 add_executable(gm)
 
+target_compile_features(gm PUBLIC c_std_99)
 target_include_directories(gm PUBLIC inc)
 
 target_sources(gm

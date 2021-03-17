@@ -4,17 +4,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum {
+typedef enum {
   Status_Success,
   Status_GlfwInitFailed,
   Status_DummyWindowCreationFailed,
   Status_GlLoadingFailed,
-  Status_ShaderCompilationFailed
-};
+  Status_ShaderCompilationFailed,
+  Status_ProgramLinkingFailed
+} Status;
 
-int Init();
-const char *GetStatusInfo(int status_code);
-int CheckShaderCompilationStatus(GLuint shader);
+Status Init();
+void PrintStatusInfo(FILE *stream, int status_code);
+
+Status CheckShaderCompilationStatus(GLuint shader);
+Status CheckProgramLinkStatus(GLuint program);
+
 void Terminate();
 
 const char *const kVShaderSource =
@@ -32,16 +36,17 @@ const char *const kFShaderSource =
     "}\n";
 
 int main() {
-  const int kInitResult = Init();
-  const char *const kStatusInfo = GetStatusInfo(kInitResult);
+  // Initialize the context.
+  const Status kInitStatus = Init();
 
-  if (kInitResult) {  // An error was returned.
-    fputs(kStatusInfo, stderr);
-    return kInitResult;
+  if (kInitStatus) {
+    PrintStatusInfo(stderr, kInitStatus);
+    return kInitStatus;
   } else {
-    fputs(kStatusInfo, stdout);
+    PrintStatusInfo(stdout, kInitStatus);
   }
 
+  // Create the shaders.
   GLuint v_shader = glCreateShader(GL_VERTEX_SHADER);
   GLuint f_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -56,11 +61,26 @@ int main() {
     return Status_ShaderCompilationFailed;
   }
 
+  // Create the program.
   GLuint program = glCreateProgram();
-  // TODO: Create and link.
 
+  glAttachShader(program, v_shader);
+  glAttachShader(program, f_shader);
+
+  glLinkProgram(program);
+
+  if (CheckProgramLinkStatus(program)) {
+    return Status_ProgramLinkingFailed;
+  }
+
+  // Now that the program is linked, delete the shaders.
   glDeleteShader(v_shader);
   glDeleteShader(f_shader);
+
+  // Create the framebuffer and use it.
+  // Render a quad on the framebuffer.
+  // Retrieve the image data from the framebuffer.
+  // Write the image data to a file.
 
   Terminate();
   return Status_Success;
@@ -71,7 +91,7 @@ int main() {
  */
 GLFWwindow *window;
 
-int Init() {
+Status Init() {
   if (!glfwInit()) {
     return Status_GlfwInitFailed;
   }
@@ -95,6 +115,13 @@ int Init() {
   return Status_Success;
 }
 
+const char *GetStatusInfo(int status_code);
+
+void PrintStatusInfo(FILE *stream, int status_code) {
+  const char *const kStatusInfo = GetStatusInfo(status_code);
+  fprintf(stream, "%s\n", kStatusInfo);
+}
+
 const char *GetStatusInfo(int status_code) {
   switch (status_code) {
     case Status_Success:
@@ -112,11 +139,11 @@ const char *GetStatusInfo(int status_code) {
   }
 }
 
-int CheckShaderCompilationStatus(GLuint shader) {
+Status CheckShaderCompilationStatus(GLuint shader) {
   int compile_status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &compile_status);
 
-  if (compile_status == GL_FALSE) {
+  if (!compile_status) {
     int length;
     glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 
@@ -125,6 +152,24 @@ int CheckShaderCompilationStatus(GLuint shader) {
 
     fprintf(stderr, "Shader compilation failed:\n%s", info_log);
     return Status_ShaderCompilationFailed;
+  }
+
+  return Status_Success;
+}
+
+Status CheckProgramLinkStatus(GLuint program) {
+  int link_status;
+  glGetProgramiv(program, GL_LINK_STATUS, &link_status);
+
+  if (!link_status) {
+    int length;
+    glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
+
+    GLchar *info_log = malloc(length);
+    glGetProgramInfoLog(program, length, NULL, info_log);
+
+    fprintf(stderr, "Program linking failed:\n%s", info_log);
+    return Status_ProgramLinkingFailed;
   }
 
   return Status_Success;
