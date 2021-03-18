@@ -254,8 +254,8 @@ const char *const kGm_VertexShaderSource =
     "out vec2 v_TexCoords;\n"
 
     "void main() {\n"
-    "v_TexCoords = a_TexCoords;\n"
-    "gl_Position = vec4(a_Position, 1.0, 1.0);\n"
+      "v_TexCoords = a_TexCoords;\n"
+      "gl_Position = vec4(a_Position, 1.0, 1.0);\n"
     "}\n";
 
 const char *const kGm_FragmentShaderSource =
@@ -266,45 +266,45 @@ const char *const kGm_FragmentShaderSource =
     "out vec4 f_Color;\n"
 
     "vec2 ComplexMul(vec2 a, vec2 b) {\n"
-    "return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);\n"
+      "return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);\n"
     "}\n"
 
     "vec2 ComplexSq(vec2 z) {\n"
-    "return ComplexMul(z, z);\n"
+      "return ComplexMul(z, z);\n"
     "}\n"
 
     "float ComplexSqMag(vec2 z) {\n"
-    "return z.x * z.x + z.y * z.y;\n"
+      "return z.x * z.x + z.y * z.y;\n"
     "}\n"
 
     "vec3 HsvToRgb(vec3 hsv) {\n"
-    "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
-    "vec3 p = abs(fract(hsv.xxx + K.xyz) * 6.0 - K.www);\n"
-    "return hsv.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv.y);\n"
+      "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
+      "vec3 p = abs(fract(hsv.xxx + K.xyz) * 6.0 - K.www);\n"
+      "return hsv.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv.y);\n"
     "}\n"
 
     "vec3 IterToRgb(int iterations) {\n"
-    "int h_deg = iterations % 360;\n"
-    "vec3 hsv = vec3(float(h_deg) / 360.0, 0.9, 1.0);\n"
-    "return HsvToRgb(hsv);\n"
+      "int h_deg = iterations % 360;\n"
+      "vec3 hsv = vec3(float(h_deg) / 360.0, 0.9, 1.0);\n"
+      "return HsvToRgb(hsv);\n"
     "}\n"
 
     "const int kMaxIterations = 100;\n"
 
     "void main() {\n"
-    "vec2 c = v_TexCoords * 2.0 - vec2(1.5, 1.0);\n"
-    "vec2 z = c;\n"
+      "vec2 c = v_TexCoords * 2.0 - vec2(1.5, 1.0);\n"
+      "vec2 z = c;\n"
 
-    "int i = 0;\n"
-    "for (; (i < kMaxIterations) && (ComplexSqMag(z) < 16.0); ++i) {\n"
-    "z = ComplexSq(z) + c;"
-    "}\n"
+      "int i = 0;\n"
+      "for (; (i < kMaxIterations) && (ComplexSqMag(z) < 16.0); ++i) {\n"
+        "z = ComplexSq(z) + c;"
+      "}\n"
 
-    "if (i == kMaxIterations) {\n"
-    "f_Color = vec4(0.0);\n"
-    "} else {\n"
-    "f_Color = vec4(IterToRgb(i), 1.0);\n"
-    "}\n"
+      "if (i == kMaxIterations) {\n"
+        "f_Color = vec4(0.0);\n"
+      "} else {\n"
+        "f_Color = vec4(IterToRgb(i), 1.0);\n"
+      "}\n"
     "}\n";
 // clang-format on
 
