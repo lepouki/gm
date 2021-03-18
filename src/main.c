@@ -44,7 +44,7 @@ int main() {
   return kStatus;
 }
 
-#define GM_FORCE_TRAILING_SEMICOLON_ (void)0
+#define GM_FORCE_SEMICOLON_ (void)0
 
 #define GM_PASS_OR_RETURN_STATUS(statement) \
   {                                         \
@@ -53,24 +53,43 @@ int main() {
       return kStatus;                       \
     }                                       \
   }                                         \
-  GM_FORCE_TRAILING_SEMICOLON_
+  GM_FORCE_SEMICOLON_
 
 gm_Status gm_Init();
 
 typedef GLuint gm_Id;
 
 typedef struct {
+  gm_Id vertex_array;
+  gm_Id buffers[2];
+} gm_Model;
+
+typedef enum {
+  gm_FramebufferType_Regular,
+  gm_FramebufferType_MultiSampled,
+} gm_FramebufferType;
+
+typedef struct {
+  gm_Id framebuffer;
+  gm_Id color0_render_buffer;
+} gm_Framebuffer;
+
+typedef struct {
   gm_Id program;
+  gm_Model quad_model;
+  gm_Framebuffer render_framebuffer;
+  gm_Framebuffer final_framebuffer;
 } gm_RenderResources;
 
 gm_Status gm_CreateProgram(gm_RenderResources *out_resources);
+void gm_CreateQuadModel(gm_Model *out_quad_model);
 
-#ifndef NDEBUG
-#  define GM_PRINT_GL_ERROR_STATUS(info) \
-    fprintf(stdout, "Error status: %d (%s)\n", glGetError(), info)
-#else
-#  define GM_PRINT_GL_ERROR_STATUS(...)
-#endif
+gm_Status gm_CreateFramebuffer(gm_Framebuffer *out_framebuffer,
+                               gm_FramebufferType type,
+                               const gm_ImageConfig *config);
+
+void gm_DestroyFramebuffer(const gm_Framebuffer *framebuffer);
+void gm_DestroyModel(const gm_Model *model);
 
 void gm_Terminate();
 
@@ -81,155 +100,65 @@ gm_Status gm_Run(const gm_ImageConfig *config) {
   GM_PASS_OR_RETURN_STATUS(gm_CreateProgram(&resources));
 
   // Create the quad data.
-  // clang-format off
-  const GLfloat kVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f,
-                                -1.0f,  1.0f, 0.0f, 1.0f,
-                                 1.0f,  1.0f, 1.0f, 1.0f,
-                                 1.0f, -1.0f, 1.0f, 0.0f };
+  gm_CreateQuadModel(&resources.quad_model);
 
-  const GLshort kIndices[] = { 0, 1, 3,
-                               1, 2, 3 };
-  // clang-format on
-
-  // Create the quad vertex array.
-  GLuint quad_va;
-  glGenVertexArrays(1, &quad_va);
-  glBindVertexArray(quad_va);
-
-  // Create the quad buffers.
-  GLuint buffers[2];
-  glGenBuffers(2, buffers);
-  GM_PRINT_GL_ERROR_STATUS("create quad buffers");
-
-  // Send the data to the buffers.
-  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
-  GM_PRINT_GL_ERROR_STATUS("upload vertex data");
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(kIndices), kIndices,
-               GL_STATIC_DRAW);
-  GM_PRINT_GL_ERROR_STATUS("upload index data");
-
-  // Vertex layout.
-  const GLsizei kStride = 4 * sizeof(GLfloat);
-
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, kStride, NULL);
-
-  const void *kTexCoordsOffset = (void *)(2 * sizeof(GLfloat));
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, kStride, kTexCoordsOffset);
-  GM_PRINT_GL_ERROR_STATUS("set vertex attribs");
-
-  glBindVertexArray(0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  // Create and initialize the framebuffer renderbuffer.
-  GLuint image_render_buffer;
-  glGenRenderbuffers(1, &image_render_buffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, image_render_buffer);
-  GM_PRINT_GL_ERROR_STATUS("create image render buffer");
-
-  glRenderbufferStorageMultisample(GL_RENDERBUFFER, config->samples, GL_RGB8,
-                                   config->size.x, config->size.y);
-  GM_PRINT_GL_ERROR_STATUS("init image render buffer");
-
-  glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-  // Create the framebuffer and use it.
-  GLuint render_framebuffer;
-  glGenFramebuffers(1, &render_framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, render_framebuffer);
-  GM_PRINT_GL_ERROR_STATUS("create render framebuffer");
-
-  // Attach it to the framebuffer.
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                            GL_RENDERBUFFER, image_render_buffer);
-  GM_PRINT_GL_ERROR_STATUS("attach image render buffer to render framebuffer");
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    return gm_Status_FramebufferCreationFailed;
-  }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  GM_PASS_OR_RETURN_STATUS(gm_CreateFramebuffer(
+      &resources.render_framebuffer, gm_FramebufferType_MultiSampled, config));
 
   // Not doing this results in the image missing some parts.
   glViewport(0, 0, config->size.x, config->size.y);
-  GM_PRINT_GL_ERROR_STATUS("set viewport");
 
   // Render a quad on the framebuffer.
-  glBindFramebuffer(GL_FRAMEBUFFER, render_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, resources.render_framebuffer.framebuffer);
   glUseProgram(resources.program);
-  glBindVertexArray(quad_va);
+  glBindVertexArray(resources.quad_model.vertex_array);
 
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  GM_PRINT_GL_ERROR_STATUS("render the image");
 
   // Create the final image buffer.
-  GLuint final_buffer;
-  glGenRenderbuffers(1, &final_buffer);
-  glBindRenderbuffer(GL_RENDERBUFFER, final_buffer);
-  GM_PRINT_GL_ERROR_STATUS("create final buffer");
-
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, config->size.x,
-                        config->size.y);
-  GM_PRINT_GL_ERROR_STATUS("init final buffer");
-
-  glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
-  // Create the final image framebuffer.
-  GLuint final_framebuffer;
-  glGenFramebuffers(1, &final_framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, final_framebuffer);
-  GM_PRINT_GL_ERROR_STATUS("create final framebuffer");
-
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                            GL_RENDERBUFFER, final_buffer);
-  GM_PRINT_GL_ERROR_STATUS("attach final buffer to final framebuffer");
+  GM_PASS_OR_RETURN_STATUS(gm_CreateFramebuffer(
+      &resources.final_framebuffer, gm_FramebufferType_Regular, config));
 
   // Blit the render data to the final framebuffer.
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, render_framebuffer);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, final_framebuffer);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER,
+                    resources.render_framebuffer.framebuffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                    resources.final_framebuffer.framebuffer);
+
   glBlitFramebuffer(0, 0, config->size.x, config->size.y, 0, 0, config->size.x,
                     config->size.y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-  GM_PRINT_GL_ERROR_STATUS("blit image to final framebuffer");
 
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
   // Retrieve the image data from the framebuffer.
   unsigned char *data = malloc(config->size.x * config->size.y * 3);  // RGB.
 
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, final_framebuffer);
-  GM_PRINT_GL_ERROR_STATUS("bind final framebuffer to read framebuffer");
+  glBindFramebuffer(GL_READ_FRAMEBUFFER,
+                    resources.final_framebuffer.framebuffer);
 
   glReadBuffer(GL_COLOR_ATTACHMENT0);
   glReadPixels(0, 0, config->size.x, config->size.y, GL_RGB, GL_UNSIGNED_BYTE,
                data);
-  GM_PRINT_GL_ERROR_STATUS("read image pixels");
 
   // Write the image data to a file.
   const int kLineStride = 3 * config->size.x;
   const int kResult = stbi_write_png("output.png", config->size.x,
                                      config->size.y, 3, data, kLineStride);
 
+  // Cleanup data before exiting.
+  gm_DestroyFramebuffer(&resources.final_framebuffer);
+  gm_DestroyFramebuffer(&resources.render_framebuffer);
+  glDeleteProgram(resources.program);
+  gm_DestroyModel(&resources.quad_model);
+
+  gm_Terminate();
+
   if (!kResult) {
     fputs("Failed to write image\n", stderr);
     return gm_Status_ImageOutputFailed;
   }
 
-  // Cleanup data.
-  glDeleteRenderbuffers(1, &final_buffer);
-  glDeleteFramebuffers(1, &final_framebuffer);
-  glDeleteRenderbuffers(1, &image_render_buffer);
-  glDeleteFramebuffers(1, &render_framebuffer);
-  glDeleteProgram(resources.program);
-  glDeleteBuffers(2, buffers);
-  GM_PRINT_GL_ERROR_STATUS("delete objects");
-
-  gm_Terminate();
   return gm_Status_Success;
 }
 
@@ -280,14 +209,17 @@ gm_Status gm_CreateProgram(gm_RenderResources *out_resources) {
 
   glAttachShader(out_resources->program, shaders.vertex);
   glAttachShader(out_resources->program, shaders.fragment);
-  GM_PRINT_GL_ERROR_STATUS("attach shaders to program");
 
   glLinkProgram(out_resources->program);
-  GM_PRINT_GL_ERROR_STATUS("link program");
 
   // We don't need the shaders anymore.
   gm_DestroyShaders(&shaders);
-  GM_PASS_OR_RETURN_STATUS(gm_CheckProgramLinkStatus(out_resources->program));
+
+  const gm_Status kStatus = gm_CheckProgramLinkStatus(out_resources->program);
+  if (kStatus) {
+    glDeleteProgram(out_resources->program);
+    return kStatus;
+  }
 
   return gm_Status_Success;
 }
@@ -304,6 +236,8 @@ gm_Status gm_CheckProgramLinkStatus(GLuint program) {
     glGetProgramInfoLog(program, length, NULL, info_log);
 
     fprintf(stderr, "Program linking failed:\n%s", info_log);
+    free(info_log);
+
     return gm_Status_ProgramLinkingFailed;
   }
 
@@ -379,15 +313,12 @@ gm_Status gm_CheckShaderCompilationStatus(GLuint shader);
 gm_Status gm_CreateShaders(gm_ProgramShaders *out_shaders) {
   out_shaders->vertex = glCreateShader(GL_VERTEX_SHADER);
   out_shaders->fragment = glCreateShader(GL_FRAGMENT_SHADER);
-  GM_PRINT_GL_ERROR_STATUS("create shaders");
 
   glShaderSource(out_shaders->vertex, 1, &kGm_VertexShaderSource, NULL);
   glShaderSource(out_shaders->fragment, 1, &kGm_FragmentShaderSource, NULL);
-  GM_PRINT_GL_ERROR_STATUS("upload shader sources");
 
   glCompileShader(out_shaders->vertex);
   glCompileShader(out_shaders->fragment);
-  GM_PRINT_GL_ERROR_STATUS("compile shaders");
 
   if (gm_CheckShaderCompilationStatus(out_shaders->vertex) ||
       gm_CheckShaderCompilationStatus(out_shaders->fragment)) {
@@ -410,6 +341,8 @@ gm_Status gm_CheckShaderCompilationStatus(GLuint shader) {
     glGetShaderInfoLog(shader, length, NULL, info_log);
 
     fprintf(stderr, "Shader compilation failed:\n%s", info_log);
+    free(info_log);
+
     return gm_Status_ShaderCompilationFailed;
   }
 
@@ -419,6 +352,114 @@ gm_Status gm_CheckShaderCompilationStatus(GLuint shader) {
 void gm_DestroyShaders(const gm_ProgramShaders *shaders) {
   glDeleteShader(shaders->vertex);
   glDeleteShader(shaders->fragment);
+}
+
+void gm_UploadQuadData(gm_Model *quad_model);
+void gm_SpecifyVertexLayout();
+
+void gm_CreateQuadModel(gm_Model *out_quad_model) {
+  glGenVertexArrays(1, &out_quad_model->vertex_array);
+  glBindVertexArray(out_quad_model->vertex_array);
+
+  // Create the quad buffers.
+  glGenBuffers(2, out_quad_model->buffers);
+
+  gm_UploadQuadData(out_quad_model);
+  gm_SpecifyVertexLayout();
+
+  glBindVertexArray(0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void gm_LoadBufferData(GLenum target, gm_Id buffer, GLsizei size,
+                       const void *data);
+
+// clang-format off
+const GLfloat kGm_Vertices[] = { -1.0f, -1.0f, 0.0f, 0.0f,
+                                 -1.0f,  1.0f, 0.0f, 1.0f,
+                                  1.0f,  1.0f, 1.0f, 1.0f,
+                                  1.0f, -1.0f, 1.0f, 0.0f };
+
+const GLshort kGm_Indices[] = { 0, 1, 3,
+                                1, 2, 3 };
+// clang-format on
+
+void gm_UploadQuadData(gm_Model *quad_model) {
+  gm_LoadBufferData(GL_ARRAY_BUFFER, quad_model->buffers[0],
+                    sizeof(kGm_Vertices), kGm_Vertices);
+
+  gm_LoadBufferData(GL_ELEMENT_ARRAY_BUFFER, quad_model->buffers[1],
+                    sizeof(kGm_Indices), kGm_Indices);
+}
+
+void gm_LoadBufferData(GLenum target, gm_Id buffer, GLsizei size,
+                       const void *data) {
+  glBindBuffer(target, buffer);
+  glBufferData(target, size, data, GL_STATIC_DRAW);
+}
+
+void gm_SpecifyVertexLayout() {
+  const GLsizei kStride = 4 * sizeof(GLfloat);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, kStride, NULL);
+
+  const void *kTexCoordsOffset = (void *)(2 * sizeof(GLfloat));
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, kStride, kTexCoordsOffset);
+}
+
+void gm_CreateRenderbuffer(gm_Framebuffer *out_framebuffer,
+                           gm_FramebufferType type,
+                           const gm_ImageConfig *config);
+
+gm_Status gm_CreateFramebuffer(gm_Framebuffer *out_framebuffer,
+                               gm_FramebufferType type,
+                               const gm_ImageConfig *image_config) {
+  gm_CreateRenderbuffer(out_framebuffer, type, image_config);
+
+  glGenFramebuffers(1, &out_framebuffer->framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, out_framebuffer->framebuffer);
+
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                            GL_RENDERBUFFER,
+                            out_framebuffer->color0_render_buffer);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    gm_DestroyFramebuffer(out_framebuffer);
+    return gm_Status_FramebufferCreationFailed;
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  return gm_Status_Success;
+}
+
+void gm_CreateRenderbuffer(gm_Framebuffer *framebuffer, gm_FramebufferType type,
+                           const gm_ImageConfig *image_config) {
+  glGenRenderbuffers(1, &framebuffer->color0_render_buffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, framebuffer->color0_render_buffer);
+
+  if (type == gm_FramebufferType_MultiSampled) {
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, image_config->samples,
+                                     GL_RGB, image_config->size.x,
+                                     image_config->size.y);
+  } else {
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, image_config->size.x,
+                          image_config->size.y);
+  }
+
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void gm_DestroyFramebuffer(const gm_Framebuffer *framebuffer) {
+  glDeleteRenderbuffers(1, &framebuffer->color0_render_buffer);
+  glDeleteFramebuffers(1, &framebuffer->framebuffer);
+}
+
+void gm_DestroyModel(const gm_Model *model) {
+  glDeleteBuffers(2, model->buffers);
+  glDeleteVertexArrays(1, &model->vertex_array);
 }
 
 void gm_Terminate() {
