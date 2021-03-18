@@ -258,8 +258,9 @@ Status WriteMandelbrotToOutput() {
   PRINT_GL_ERROR_STATUS("read pixels");
 
   // Write the image data to a file.
+  const int kLineStride = 3 * kImageWidth;
   const int kResult = stbi_write_png("output.png", kImageWidth, kImageHeight, 3,
-                                     data, 3 * kImageWidth);
+                                     data, kLineStride);
 
   if (!kResult) {
     fputs("Failed to write image\n", stderr);
