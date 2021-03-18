@@ -234,6 +234,8 @@ int main() {
   glUseProgram(program);
   glBindVertexArray(quad_va);
 
+  // TODO: Render to a multi-sampled framebuffer and blit to a regular
+  // TODO: framebuffer before reading.
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
   PRINT_GL_ERROR_STATUS("draw elements");
 
