@@ -18,13 +18,18 @@ typedef enum {
   Status_ImageOutputFailed
 } Status;
 
-Status Init();
+Status WriteMandelbrotToOutput();
 void PrintStatus(FILE *stream, int status_code);
 
-Status CheckShaderCompilationStatus(GLuint shader);
-Status CheckProgramLinkStatus(GLuint program);
-
-void Terminate();
+int main() {
+  const int kStatus = WriteMandelbrotToOutput();
+  if (kStatus) {
+    PrintStatus(stderr, kStatus);
+  } else {
+    PrintStatus(stdout, kStatus);
+  }
+  return kStatus;
+}
 
 // clang-format off
 const char *const kVertexShaderSource =
@@ -36,8 +41,8 @@ const char *const kVertexShaderSource =
     "out vec2 v_TexCoords;\n"
 
     "void main() {\n"
-      "v_TexCoords = a_TexCoords;\n"
-      "gl_Position = vec4(a_Position, 1.0, 1.0);\n"
+    "v_TexCoords = a_TexCoords;\n"
+    "gl_Position = vec4(a_Position, 1.0, 1.0);\n"
     "}\n";
 
 const char *const kFragmentShaderSource =
@@ -48,45 +53,45 @@ const char *const kFragmentShaderSource =
     "out vec4 f_Color;\n"
 
     "vec2 ComplexMul(vec2 a, vec2 b) {\n"
-      "return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);\n"
+    "return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);\n"
     "}\n"
 
     "vec2 ComplexSq(vec2 z) {\n"
-      "return ComplexMul(z, z);\n"
+    "return ComplexMul(z, z);\n"
     "}\n"
 
     "float ComplexSqMag(vec2 z) {\n"
-      "return z.x * z.x + z.y * z.y;\n"
+    "return z.x * z.x + z.y * z.y;\n"
     "}\n"
 
     "vec3 HsvToRgb(vec3 hsv) {\n"
-      "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
-      "vec3 p = abs(fract(hsv.xxx + K.xyz) * 6.0 - K.www);\n"
-      "return hsv.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv.y);\n"
+    "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
+    "vec3 p = abs(fract(hsv.xxx + K.xyz) * 6.0 - K.www);\n"
+    "return hsv.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv.y);\n"
     "}\n"
 
     "vec3 IterToRgb(int iterations) {\n"
-      "int h_deg = iterations % 360;\n"
-      "vec3 hsv = vec3(float(h_deg) / 360.0, 0.9, 1.0);\n"
-      "return HsvToRgb(hsv);\n"
+    "int h_deg = iterations % 360;\n"
+    "vec3 hsv = vec3(float(h_deg) / 360.0, 0.9, 1.0);\n"
+    "return HsvToRgb(hsv);\n"
     "}\n"
 
     "const int kMaxIterations = 100;\n"
 
     "void main() {\n"
-      "vec2 c = v_TexCoords * 2.0 - vec2(1.5, 1.0);\n"
-      "vec2 z = c;\n"
+    "vec2 c = v_TexCoords * 2.0 - vec2(1.5, 1.0);\n"
+    "vec2 z = c;\n"
 
-      "int i = 0;\n"
-      "for (; (i < kMaxIterations) && (ComplexSqMag(z) < 16.0); ++i) {\n"
-        "z = ComplexSq(z) + c;"
-      "}\n"
+    "int i = 0;\n"
+    "for (; (i < kMaxIterations) && (ComplexSqMag(z) < 16.0); ++i) {\n"
+    "z = ComplexSq(z) + c;"
+    "}\n"
 
-      "if (i == kMaxIterations) {\n"
-        "f_Color = vec4(0.0);\n"
-      "} else {\n"
-        "f_Color = vec4(IterToRgb(i), 1.0);\n"
-      "}\n"
+    "if (i == kMaxIterations) {\n"
+    "f_Color = vec4(0.0);\n"
+    "} else {\n"
+    "f_Color = vec4(IterToRgb(i), 1.0);\n"
+    "}\n"
     "}\n";
 // clang-format on
 
@@ -100,15 +105,17 @@ const int kImageHeight = 500;
 #  define PRINT_GL_ERROR_STATUS(...)
 #endif
 
-int main() {
-  // Initialize the context.
-  const Status kInitStatus = Init();
+Status Init();
 
+Status CheckShaderCompilationStatus(GLuint shader);
+Status CheckProgramLinkStatus(GLuint program);
+
+void Terminate();
+
+Status WriteMandelbrotToOutput() {
+  const Status kInitStatus = Init();
   if (kInitStatus) {
-    PrintStatus(stderr, kInitStatus);
     return kInitStatus;
-  } else {
-    PrintStatus(stdout, kInitStatus);
   }
 
   // Create the shaders.
@@ -153,8 +160,8 @@ int main() {
   // clang-format off
   const GLfloat kVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f,
                                 -1.0f,  1.0f, 0.0f, 1.0f,
-                                 1.0f,  1.0f, 1.0f, 1.0f,
-                                 1.0f, -1.0f, 1.0f, 0.0f };
+                                1.0f,  1.0f, 1.0f, 1.0f,
+                                1.0f, -1.0f, 1.0f, 0.0f };
 
   const GLshort kIndices[] = { 0, 1, 3,
                                1, 2, 3 };
@@ -311,7 +318,7 @@ void PrintStatus(FILE *stream, int status_code) {
 const char *GetStatusInfo(int status_code) {
   switch (status_code) {
     case Status_Success:
-      return "Initialization successful";
+      return "Everything went as planned";
     case Status_GlfwInitFailed:
       return "GLFW initialization failed";
     case Status_DummyWindowCreationFailed:
@@ -322,6 +329,8 @@ const char *GetStatusInfo(int status_code) {
       return "Failed to compile a shader";
     case Status_FramebufferCreationFailed:
       return "Failed to create the image framebuffer";
+    case Status_ImageOutputFailed:
+      return "Failed to write to the output image";
     default:
       return "Unknown status";
   }
