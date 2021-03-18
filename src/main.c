@@ -26,19 +26,69 @@ Status CheckProgramLinkStatus(GLuint program);
 
 void Terminate();
 
-const char *const kVShaderSource =
+// clang-format off
+const char *const kVertexShaderSource =
     "#version 330 core \n"
+
     "layout(location = 0) in vec2 a_Position;\n"
+    "layout(location = 1) in vec2 a_TexCoords;\n"
+
+    "out vec2 v_TexCoords;\n"
+
     "void main() {\n"
-    "  gl_Position = vec4(a_Position, 1.0, 1.0);\n"
+      "v_TexCoords = a_TexCoords;\n"
+      "gl_Position = vec4(a_Position, 1.0, 1.0);\n"
     "}\n";
 
-const char *const kFShaderSource =
+const char *const kFragmentShaderSource =
     "#version 330 core\n"
+
+    "in vec2 v_TexCoords;\n"
+
     "out vec4 f_Color;\n"
+
+    "vec2 ComplexMul(vec2 a, vec2 b) {\n"
+      "return vec2(a.x * b.x - a.y * b.y, a.x * b.y + a.y * b.x);\n"
+    "}\n"
+
+    "vec2 ComplexSq(vec2 z) {\n"
+      "return ComplexMul(z, z);\n"
+    "}\n"
+
+    "float ComplexSqMag(vec2 c) {\n"
+      "return c.x * c.x + c.y * c.y;\n"
+    "}\n"
+
+    "vec3 hsv2rgb(vec3 c) {\n"
+      "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
+      "vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n"
+      "return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n"
+    "}\n"
+
+    "vec3 iterToRGB(int iterations) {\n"
+      "int h_deg = iterations % 360;\n"
+      "vec3 hsv = vec3(float(h_deg) / 360.0, 0.9, 1.0);\n"
+      "return hsv2rgb(hsv);\n"
+    "}\n"
+
+    "const int kMaxIterations = 100;\n"
+
     "void main() {\n"
-    "  f_Color = vec4(1.0);\n"
+      "vec2 c = v_TexCoords * 2.0 - vec2(1.5, 1.0);\n"
+      "vec2 z = c;\n"
+
+      "int i = 0;\n"
+      "for (; (i < kMaxIterations) && (ComplexSqMag(z) < 16.0); ++i) {\n"
+        "z = ComplexSq(z) + c;"
+      "}\n"
+
+      "if (i == kMaxIterations) {\n"
+        "f_Color = vec4(0.0);\n"
+      "} else {\n"
+        "f_Color = vec4(iterToRGB(i), 1.0);\n"
+      "}\n"
     "}\n";
+// clang-format on
 
 const int kImageWidth = 500;
 const int kImageHeight = 500;
@@ -62,20 +112,20 @@ int main() {
   }
 
   // Create the shaders.
-  GLuint v_shader = glCreateShader(GL_VERTEX_SHADER);
-  GLuint f_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+  GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
   PRINT_GL_ERROR_STATUS("create shaders");
 
-  glShaderSource(v_shader, 1, &kVShaderSource, NULL);
-  glShaderSource(f_shader, 1, &kFShaderSource, NULL);
+  glShaderSource(vertex_shader, 1, &kVertexShaderSource, NULL);
+  glShaderSource(fragment_shader, 1, &kFragmentShaderSource, NULL);
   PRINT_GL_ERROR_STATUS("shader sources");
 
-  glCompileShader(v_shader);
-  glCompileShader(f_shader);
+  glCompileShader(vertex_shader);
+  glCompileShader(fragment_shader);
   PRINT_GL_ERROR_STATUS("compile shaders");
 
-  if (CheckShaderCompilationStatus(v_shader) ||
-      CheckShaderCompilationStatus(f_shader)) {
+  if (CheckShaderCompilationStatus(vertex_shader) ||
+      CheckShaderCompilationStatus(fragment_shader)) {
     return Status_ShaderCompilationFailed;
   }
 
@@ -83,8 +133,8 @@ int main() {
   GLuint program = glCreateProgram();
   PRINT_GL_ERROR_STATUS("create program");
 
-  glAttachShader(program, v_shader);
-  glAttachShader(program, f_shader);
+  glAttachShader(program, vertex_shader);
+  glAttachShader(program, fragment_shader);
   PRINT_GL_ERROR_STATUS("attach shaders");
 
   glLinkProgram(program);
@@ -95,19 +145,19 @@ int main() {
   }
 
   // Now that the program is linked, delete the shaders.
-  glDeleteShader(v_shader);
-  glDeleteShader(f_shader);
+  glDeleteShader(vertex_shader);
+  glDeleteShader(fragment_shader);
   PRINT_GL_ERROR_STATUS("delete shaders");
 
   // Create the quad data.
   // clang-format off
-  const GLfloat kVertices[] = {-1.0f, -1.0f,
-                               -1.0f,  1.0f,
-                                1.0f,  1.0f,
-                                1.0f, -1.0f};
+  const GLfloat kVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f,
+                                -1.0f,  1.0f, 0.0f, 1.0f,
+                                 1.0f,  1.0f, 1.0f, 1.0f,
+                                 1.0f, -1.0f, 1.0f, 0.0f };
 
-  const GLshort kIndices[] = {0, 1, 3,
-                              1, 2, 3};
+  const GLshort kIndices[] = { 0, 1, 3,
+                               1, 2, 3 };
   // clang-format on
 
   // Create the quad vertex array.
@@ -131,8 +181,16 @@ int main() {
   PRINT_GL_ERROR_STATUS("index data");
 
   // Vertex layout.
+  const GLsizei kStride = 4 * sizeof(GLfloat);
+
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), NULL);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, kStride, NULL);
+
+  const GLsizeiptr kTexCoordsOffset = 2 * sizeof(GLfloat);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, kStride,
+                        (const void *)kTexCoordsOffset);
+
   PRINT_GL_ERROR_STATUS("vertex attrib");
 
   glBindVertexArray(0);
