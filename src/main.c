@@ -147,6 +147,7 @@ gm_Status gm_Run(const gm_ImageConfig *config) {
                                      config->size.y, 3, data, kLineStride);
 
   // Cleanup data before exiting.
+  free(data);
   gm_DestroyFramebuffer(&resources.final_framebuffer);
   gm_DestroyFramebuffer(&resources.render_framebuffer);
   glDeleteProgram(resources.program);
