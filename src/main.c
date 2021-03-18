@@ -108,11 +108,6 @@ const char *const kFragmentShaderSource =
     "}\n";
 // clang-format on
 
-const int kRenderSamples = 8;
-
-const int kImageWidth = 500;
-const int kImageHeight = 500;
-
 #ifndef NDEBUG
 #  define PRINT_GL_ERROR_STATUS(info) \
     fprintf(stdout, "Error status: %d (%s)\n", glGetError(), info)
@@ -302,7 +297,7 @@ gm_Status gm_WriteToOutput(const gm_ImageConfig *config) {
   PRINT_GL_ERROR_STATUS("read image pixels");
 
   // Write the image data to a file.
-  const int kLineStride = 3 * kImageWidth;
+  const int kLineStride = 3 * config->size.x;
   const int kResult = stbi_write_png("output.png", config->size.x,
                                      config->size.y, 3, data, kLineStride);
 
