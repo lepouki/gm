@@ -55,14 +55,14 @@ const char *const kFragmentShaderSource =
       "return ComplexMul(z, z);\n"
     "}\n"
 
-    "float ComplexSqMag(vec2 c) {\n"
-      "return c.x * c.x + c.y * c.y;\n"
+    "float ComplexSqMag(vec2 z) {\n"
+      "return z.x * z.x + z.y * z.y;\n"
     "}\n"
 
-    "vec3 hsv2rgb(vec3 c) {\n"
+    "vec3 hsv2rgb(vec3 hsv) {\n"
       "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
-      "vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);\n"
-      "return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);\n"
+      "vec3 p = abs(fract(hsv.xxx + K.xyz) * 6.0 - K.www);\n"
+      "return hsv.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv.y);\n"
     "}\n"
 
     "vec3 iterToRGB(int iterations) {\n"
