@@ -160,8 +160,8 @@ Status WriteMandelbrotToOutput() {
   // clang-format off
   const GLfloat kVertices[] = { -1.0f, -1.0f, 0.0f, 0.0f,
                                 -1.0f,  1.0f, 0.0f, 1.0f,
-                                1.0f,  1.0f, 1.0f, 1.0f,
-                                1.0f, -1.0f, 1.0f, 0.0f };
+                                 1.0f,  1.0f, 1.0f, 1.0f,
+                                 1.0f, -1.0f, 1.0f, 0.0f };
 
   const GLshort kIndices[] = { 0, 1, 3,
                                1, 2, 3 };
