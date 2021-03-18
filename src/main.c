@@ -59,16 +59,16 @@ const char *const kFragmentShaderSource =
       "return z.x * z.x + z.y * z.y;\n"
     "}\n"
 
-    "vec3 hsv2rgb(vec3 hsv) {\n"
+    "vec3 HsvToRgb(vec3 hsv) {\n"
       "vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);\n"
       "vec3 p = abs(fract(hsv.xxx + K.xyz) * 6.0 - K.www);\n"
       "return hsv.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), hsv.y);\n"
     "}\n"
 
-    "vec3 iterToRGB(int iterations) {\n"
+    "vec3 IterToRgb(int iterations) {\n"
       "int h_deg = iterations % 360;\n"
       "vec3 hsv = vec3(float(h_deg) / 360.0, 0.9, 1.0);\n"
-      "return hsv2rgb(hsv);\n"
+      "return HsvToRgb(hsv);\n"
     "}\n"
 
     "const int kMaxIterations = 100;\n"
@@ -85,7 +85,7 @@ const char *const kFragmentShaderSource =
       "if (i == kMaxIterations) {\n"
         "f_Color = vec4(0.0);\n"
       "} else {\n"
-        "f_Color = vec4(iterToRGB(i), 1.0);\n"
+        "f_Color = vec4(IterToRgb(i), 1.0);\n"
       "}\n"
     "}\n";
 // clang-format on
