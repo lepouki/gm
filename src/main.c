@@ -8,25 +8,25 @@
 #include <stdlib.h>
 
 typedef enum {
-  Status_Success,
-  Status_GlfwInitFailed,
-  Status_DummyWindowCreationFailed,
-  Status_GlLoadingFailed,
-  Status_ShaderCompilationFailed,
-  Status_ProgramLinkingFailed,
-  Status_FramebufferCreationFailed,
-  Status_ImageOutputFailed
-} Status;
+  gm_Status_Success,
+  gm_Status_GlfwInitFailed,
+  gm_Status_DummyWindowCreationFailed,
+  gm_Status_GlLoadingFailed,
+  gm_Status_ShaderCompilationFailed,
+  gm_Status_ProgramLinkingFailed,
+  gm_Status_FramebufferCreationFailed,
+  gm_Status_ImageOutputFailed
+} gm_Status;
 
-Status WriteMandelbrotToOutput();
-void PrintStatus(FILE *stream, int status_code);
+gm_Status gm_WriteToOutput();
+void gm_PrintStatus(FILE *stream, int status_code);
 
 int main() {
-  const int kStatus = WriteMandelbrotToOutput();
+  const int kStatus = gm_WriteToOutput();
   if (kStatus) {
-    PrintStatus(stderr, kStatus);
+    gm_PrintStatus(stderr, kStatus);
   } else {
-    PrintStatus(stdout, kStatus);
+    gm_PrintStatus(stdout, kStatus);
   }
   return kStatus;
 }
@@ -95,6 +95,8 @@ const char *const kFragmentShaderSource =
     "}\n";
 // clang-format on
 
+const int kRenderSamples = 8;
+
 const int kImageWidth = 500;
 const int kImageHeight = 500;
 
@@ -105,15 +107,15 @@ const int kImageHeight = 500;
 #  define PRINT_GL_ERROR_STATUS(...)
 #endif
 
-Status Init();
+gm_Status gm_Init();
 
-Status CheckShaderCompilationStatus(GLuint shader);
-Status CheckProgramLinkStatus(GLuint program);
+gm_Status gm_CheckShaderCompilationStatus(GLuint shader);
+gm_Status gm_CheckProgramLinkStatus(GLuint program);
 
-void Terminate();
+void gm_Terminate();
 
-Status WriteMandelbrotToOutput() {
-  const Status kInitStatus = Init();
+gm_Status gm_WriteToOutput() {
+  const gm_Status kInitStatus = gm_Init();
   if (kInitStatus) {
     return kInitStatus;
   }
@@ -125,15 +127,15 @@ Status WriteMandelbrotToOutput() {
 
   glShaderSource(vertex_shader, 1, &kVertexShaderSource, NULL);
   glShaderSource(fragment_shader, 1, &kFragmentShaderSource, NULL);
-  PRINT_GL_ERROR_STATUS("shader sources");
+  PRINT_GL_ERROR_STATUS("upload shader sources");
 
   glCompileShader(vertex_shader);
   glCompileShader(fragment_shader);
   PRINT_GL_ERROR_STATUS("compile shaders");
 
-  if (CheckShaderCompilationStatus(vertex_shader) ||
-      CheckShaderCompilationStatus(fragment_shader)) {
-    return Status_ShaderCompilationFailed;
+  if (gm_CheckShaderCompilationStatus(vertex_shader) ||
+      gm_CheckShaderCompilationStatus(fragment_shader)) {
+    return gm_Status_ShaderCompilationFailed;
   }
 
   // Create the program.
@@ -142,13 +144,13 @@ Status WriteMandelbrotToOutput() {
 
   glAttachShader(program, vertex_shader);
   glAttachShader(program, fragment_shader);
-  PRINT_GL_ERROR_STATUS("attach shaders");
+  PRINT_GL_ERROR_STATUS("attach shaders to program");
 
   glLinkProgram(program);
   PRINT_GL_ERROR_STATUS("link program");
 
-  if (CheckProgramLinkStatus(program)) {
-    return Status_ProgramLinkingFailed;
+  if (gm_CheckProgramLinkStatus(program)) {
+    return gm_Status_ProgramLinkingFailed;
   }
 
   // Now that the program is linked, delete the shaders.
@@ -175,17 +177,17 @@ Status WriteMandelbrotToOutput() {
   // Create the quad buffers.
   GLuint buffers[2];
   glGenBuffers(2, buffers);
-  PRINT_GL_ERROR_STATUS("gen buffers");
+  PRINT_GL_ERROR_STATUS("create quad buffers");
 
   // Send the data to the buffers.
   glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
   glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
-  PRINT_GL_ERROR_STATUS("vertex data");
+  PRINT_GL_ERROR_STATUS("upload vertex data");
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(kIndices), kIndices,
                GL_STATIC_DRAW);
-  PRINT_GL_ERROR_STATUS("index data");
+  PRINT_GL_ERROR_STATUS("upload index data");
 
   // Vertex layout.
   const GLsizei kStride = 4 * sizeof(GLfloat);
@@ -196,64 +198,93 @@ Status WriteMandelbrotToOutput() {
   const void *kTexCoordsOffset = (void *)(2 * sizeof(GLfloat));
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, kStride, kTexCoordsOffset);
-  PRINT_GL_ERROR_STATUS("vertex attribs");
+  PRINT_GL_ERROR_STATUS("set vertex attribs");
 
   glBindVertexArray(0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // Create and initialize the framebuffer renderbuffer.
-  GLuint image_buf;
-  glGenRenderbuffers(1, &image_buf);
-  glBindRenderbuffer(GL_RENDERBUFFER, image_buf);
-  PRINT_GL_ERROR_STATUS("create image buf");
+  GLuint image_render_buffer;
+  glGenRenderbuffers(1, &image_render_buffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, image_render_buffer);
+  PRINT_GL_ERROR_STATUS("create image render buffer");
 
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB8, kImageWidth, kImageHeight);
-  PRINT_GL_ERROR_STATUS("image buf storage");
+  glRenderbufferStorageMultisample(GL_RENDERBUFFER, kRenderSamples, GL_RGB8,
+                                   kImageWidth, kImageHeight);
+  PRINT_GL_ERROR_STATUS("init image render buffer");
 
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
   // Create the framebuffer and use it.
-  GLuint fb;
-  glGenFramebuffers(1, &fb);
-  glBindFramebuffer(GL_FRAMEBUFFER, fb);
-  PRINT_GL_ERROR_STATUS("create fb");
+  GLuint render_framebuffer;
+  glGenFramebuffers(1, &render_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, render_framebuffer);
+  PRINT_GL_ERROR_STATUS("create render framebuffer");
 
   // Attach it to the framebuffer.
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                            GL_RENDERBUFFER, image_buf);
-  PRINT_GL_ERROR_STATUS("attach image buf to fb");
+                            GL_RENDERBUFFER, image_render_buffer);
+  PRINT_GL_ERROR_STATUS("attach image render buffer to render framebuffer");
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    return Status_FramebufferCreationFailed;
+    return gm_Status_FramebufferCreationFailed;
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Not doing this results in the image missing some parts.
   glViewport(0, 0, kImageWidth, kImageHeight);
-  PRINT_GL_ERROR_STATUS("set viewport");
+  PRINT_GL_ERROR_STATUS("set viewport dimensions");
 
   // Render a quad on the framebuffer.
-  glBindFramebuffer(GL_FRAMEBUFFER, fb);
+  glBindFramebuffer(GL_FRAMEBUFFER, render_framebuffer);
   glUseProgram(program);
   glBindVertexArray(quad_va);
 
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
-  PRINT_GL_ERROR_STATUS("draw elements");
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  PRINT_GL_ERROR_STATUS("render the image");
+
+  // Create the final image buffer.
+  GLuint final_buffer;
+  glGenRenderbuffers(1, &final_buffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, final_buffer);
+  PRINT_GL_ERROR_STATUS("create final buffer");
+
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, kImageWidth, kImageHeight);
+  PRINT_GL_ERROR_STATUS("init final buffer");
+
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+  // Create the final image framebuffer.
+  GLuint final_framebuffer;
+  glGenFramebuffers(1, &final_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, final_framebuffer);
+  PRINT_GL_ERROR_STATUS("create final framebuffer");
+
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                            GL_RENDERBUFFER, final_buffer);
+  PRINT_GL_ERROR_STATUS("attach final buffer to final framebuffer");
+
+  // Blit the render data to the final framebuffer.
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, render_framebuffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, final_framebuffer);
+  glBlitFramebuffer(0, 0, kImageWidth, kImageHeight, 0, 0, kImageWidth,
+                    kImageHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+  PRINT_GL_ERROR_STATUS("blit image to final framebuffer");
+
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
   // Retrieve the image data from the framebuffer.
   unsigned char *data = malloc(kImageWidth * kImageHeight * 3);  // 3 for RGB.
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, fb);
-  PRINT_GL_ERROR_STATUS("bind fb to read framebuffer");
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, final_framebuffer);
+  PRINT_GL_ERROR_STATUS("bind final framebuffer to read framebuffer");
 
   glReadBuffer(GL_COLOR_ATTACHMENT0);
-  PRINT_GL_ERROR_STATUS("set read buffer");
-
   glReadPixels(0, 0, kImageWidth, kImageHeight, GL_RGB, GL_UNSIGNED_BYTE, data);
-  PRINT_GL_ERROR_STATUS("read pixels");
+  PRINT_GL_ERROR_STATUS("read image pixels");
 
   // Write the image data to a file.
   const int kLineStride = 3 * kImageWidth;
@@ -262,18 +293,20 @@ Status WriteMandelbrotToOutput() {
 
   if (!kResult) {
     fputs("Failed to write image\n", stderr);
-    return Status_ImageOutputFailed;
+    return gm_Status_ImageOutputFailed;
   }
 
   // Cleanup data.
-  glDeleteRenderbuffers(1, &image_buf);
-  glDeleteFramebuffers(1, &fb);
+  glDeleteRenderbuffers(1, &final_buffer);
+  glDeleteFramebuffers(1, &final_framebuffer);
+  glDeleteRenderbuffers(1, &image_render_buffer);
+  glDeleteFramebuffers(1, &render_framebuffer);
   glDeleteProgram(program);
   glDeleteBuffers(2, buffers);
   PRINT_GL_ERROR_STATUS("delete objects");
 
-  Terminate();
-  return Status_Success;
+  gm_Terminate();
+  return gm_Status_Success;
 }
 
 /**
@@ -281,9 +314,9 @@ Status WriteMandelbrotToOutput() {
  */
 GLFWwindow *window;
 
-Status Init() {
+gm_Status gm_Init() {
   if (!glfwInit()) {
-    return Status_GlfwInitFailed;
+    return gm_Status_GlfwInitFailed;
   }
 
   glfwDefaultWindowHints();
@@ -294,46 +327,46 @@ Status Init() {
 
   window = glfwCreateWindow(1, 1, "", NULL, NULL);
   if (!window) {
-    return Status_DummyWindowCreationFailed;
+    return gm_Status_DummyWindowCreationFailed;
   }
 
   glfwMakeContextCurrent(window);
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    return Status_GlLoadingFailed;
+    return gm_Status_GlLoadingFailed;
   }
 
-  return Status_Success;
+  return gm_Status_Success;
 }
 
-const char *GetStatusInfo(int status_code);
+const char *gm_GetStatusCodeInfo(int status_code);
 
-void PrintStatus(FILE *stream, int status_code) {
-  const char *const kStatusInfo = GetStatusInfo(status_code);
+void gm_PrintStatus(FILE *stream, int status_code) {
+  const char *const kStatusInfo = gm_GetStatusCodeInfo(status_code);
   fprintf(stream, "%s\n", kStatusInfo);
 }
 
-const char *GetStatusInfo(int status_code) {
+const char *gm_GetStatusCodeInfo(int status_code) {
   switch (status_code) {
-    case Status_Success:
+    case gm_Status_Success:
       return "Everything went as planned";
-    case Status_GlfwInitFailed:
+    case gm_Status_GlfwInitFailed:
       return "GLFW initialization failed";
-    case Status_DummyWindowCreationFailed:
+    case gm_Status_DummyWindowCreationFailed:
       return "Creation of the dummy window failed";
-    case Status_GlLoadingFailed:
+    case gm_Status_GlLoadingFailed:
       return "Failed to load OpenGL functions";
-    case Status_ShaderCompilationFailed:
+    case gm_Status_ShaderCompilationFailed:
       return "Failed to compile a shader";
-    case Status_FramebufferCreationFailed:
+    case gm_Status_FramebufferCreationFailed:
       return "Failed to create the image framebuffer";
-    case Status_ImageOutputFailed:
+    case gm_Status_ImageOutputFailed:
       return "Failed to write to the output image";
     default:
       return "Unknown status";
   }
 }
 
-Status CheckShaderCompilationStatus(GLuint shader) {
+gm_Status gm_CheckShaderCompilationStatus(GLuint shader) {
   int compile_status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &compile_status);
 
@@ -345,13 +378,13 @@ Status CheckShaderCompilationStatus(GLuint shader) {
     glGetShaderInfoLog(shader, length, NULL, info_log);
 
     fprintf(stderr, "Shader compilation failed:\n%s", info_log);
-    return Status_ShaderCompilationFailed;
+    return gm_Status_ShaderCompilationFailed;
   }
 
-  return Status_Success;
+  return gm_Status_Success;
 }
 
-Status CheckProgramLinkStatus(GLuint program) {
+gm_Status gm_CheckProgramLinkStatus(GLuint program) {
   int link_status;
   glGetProgramiv(program, GL_LINK_STATUS, &link_status);
 
@@ -363,13 +396,13 @@ Status CheckProgramLinkStatus(GLuint program) {
     glGetProgramInfoLog(program, length, NULL, info_log);
 
     fprintf(stderr, "Program linking failed:\n%s", info_log);
-    return Status_ProgramLinkingFailed;
+    return gm_Status_ProgramLinkingFailed;
   }
 
-  return Status_Success;
+  return gm_Status_Success;
 }
 
-void Terminate() {
+void gm_Terminate() {
   glfwDestroyWindow(window);
   glfwTerminate();
 }
