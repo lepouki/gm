@@ -14,4 +14,4 @@ target_sources(gm
     src/main.c)
 
 add_subdirectory(vendor)
-target_link_libraries(gm PUBLIC glfw glad)
+target_link_libraries(gm PUBLIC glfw glad stb)
