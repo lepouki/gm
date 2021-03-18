@@ -114,6 +114,7 @@ gm_Status gm_CheckProgramLinkStatus(GLuint program);
 
 void gm_Terminate();
 
+// TODO: Cleanup in error branches.
 gm_Status gm_WriteToOutput() {
   const gm_Status kInitStatus = gm_Init();
   if (kInitStatus) {
