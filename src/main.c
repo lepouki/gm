@@ -18,16 +18,29 @@ typedef enum {
   gm_Status_ImageOutputFailed
 } gm_Status;
 
-gm_Status gm_WriteToOutput();
+typedef struct {
+  int x;
+  int y;
+} gm_IntSize;
+
+typedef struct {
+  gm_IntSize size;
+  int samples;
+} gm_ImageConfig;
+
+gm_Status gm_WriteToOutput(const gm_ImageConfig *config);
 void gm_PrintStatus(FILE *stream, int status_code);
 
 int main() {
-  const int kStatus = gm_WriteToOutput();
+  const gm_ImageConfig kConfig = {.size = {.x = 500, .y = 500}, .samples = 8};
+  const int kStatus = gm_WriteToOutput(&kConfig);
+
   if (kStatus) {
     gm_PrintStatus(stderr, kStatus);
   } else {
     gm_PrintStatus(stdout, kStatus);
   }
+
   return kStatus;
 }
 
@@ -114,8 +127,7 @@ gm_Status gm_CheckProgramLinkStatus(GLuint program);
 
 void gm_Terminate();
 
-// TODO: Cleanup in error branches.
-gm_Status gm_WriteToOutput() {
+gm_Status gm_WriteToOutput(const gm_ImageConfig *config) {
   const gm_Status kInitStatus = gm_Init();
   if (kInitStatus) {
     return kInitStatus;
@@ -211,8 +223,8 @@ gm_Status gm_WriteToOutput() {
   glBindRenderbuffer(GL_RENDERBUFFER, image_render_buffer);
   PRINT_GL_ERROR_STATUS("create image render buffer");
 
-  glRenderbufferStorageMultisample(GL_RENDERBUFFER, kRenderSamples, GL_RGB8,
-                                   kImageWidth, kImageHeight);
+  glRenderbufferStorageMultisample(GL_RENDERBUFFER, config->samples, GL_RGB8,
+                                   config->size.x, config->size.y);
   PRINT_GL_ERROR_STATUS("init image render buffer");
 
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
@@ -235,8 +247,8 @@ gm_Status gm_WriteToOutput() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Not doing this results in the image missing some parts.
-  glViewport(0, 0, kImageWidth, kImageHeight);
-  PRINT_GL_ERROR_STATUS("set viewport dimensions");
+  glViewport(0, 0, config->size.x, config->size.y);
+  PRINT_GL_ERROR_STATUS("set viewport");
 
   // Render a quad on the framebuffer.
   glBindFramebuffer(GL_FRAMEBUFFER, render_framebuffer);
@@ -253,7 +265,8 @@ gm_Status gm_WriteToOutput() {
   glBindRenderbuffer(GL_RENDERBUFFER, final_buffer);
   PRINT_GL_ERROR_STATUS("create final buffer");
 
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, kImageWidth, kImageHeight);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, config->size.x,
+                        config->size.y);
   PRINT_GL_ERROR_STATUS("init final buffer");
 
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
@@ -271,26 +284,27 @@ gm_Status gm_WriteToOutput() {
   // Blit the render data to the final framebuffer.
   glBindFramebuffer(GL_READ_FRAMEBUFFER, render_framebuffer);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, final_framebuffer);
-  glBlitFramebuffer(0, 0, kImageWidth, kImageHeight, 0, 0, kImageWidth,
-                    kImageHeight, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+  glBlitFramebuffer(0, 0, config->size.x, config->size.y, 0, 0, config->size.x,
+                    config->size.y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
   PRINT_GL_ERROR_STATUS("blit image to final framebuffer");
 
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
   // Retrieve the image data from the framebuffer.
-  unsigned char *data = malloc(kImageWidth * kImageHeight * 3);  // 3 for RGB.
+  unsigned char *data = malloc(config->size.x * config->size.y * 3);  // RGB.
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, final_framebuffer);
   PRINT_GL_ERROR_STATUS("bind final framebuffer to read framebuffer");
 
   glReadBuffer(GL_COLOR_ATTACHMENT0);
-  glReadPixels(0, 0, kImageWidth, kImageHeight, GL_RGB, GL_UNSIGNED_BYTE, data);
+  glReadPixels(0, 0, config->size.x, config->size.y, GL_RGB, GL_UNSIGNED_BYTE,
+               data);
   PRINT_GL_ERROR_STATUS("read image pixels");
 
   // Write the image data to a file.
   const int kLineStride = 3 * kImageWidth;
-  const int kResult = stbi_write_png("output.png", kImageWidth, kImageHeight, 3,
-                                     data, kLineStride);
+  const int kResult = stbi_write_png("output.png", config->size.x,
+                                     config->size.y, 3, data, kLineStride);
 
   if (!kResult) {
     fputs("Failed to write image\n", stderr);
@@ -326,6 +340,7 @@ gm_Status gm_Init() {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
+  // Dummy window.
   window = glfwCreateWindow(1, 1, "", NULL, NULL);
   if (!window) {
     return gm_Status_DummyWindowCreationFailed;
@@ -405,5 +420,6 @@ gm_Status gm_CheckProgramLinkStatus(GLuint program) {
 
 void gm_Terminate() {
   glfwDestroyWindow(window);
+  glfwMakeContextCurrent(NULL);
   glfwTerminate();
 }
