@@ -1,4 +1,5 @@
 #define GLFW_INCLUDE_NONE
+
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <stdio.h>
@@ -14,7 +15,7 @@ typedef enum {
 } Status;
 
 Status Init();
-void PrintStatusInfo(FILE *stream, int status_code);
+void PrintStatus(FILE *stream, int status_code);
 
 Status CheckShaderCompilationStatus(GLuint shader);
 Status CheckProgramLinkStatus(GLuint program);
@@ -40,10 +41,10 @@ int main() {
   const Status kInitStatus = Init();
 
   if (kInitStatus) {
-    PrintStatusInfo(stderr, kInitStatus);
+    PrintStatus(stderr, kInitStatus);
     return kInitStatus;
   } else {
-    PrintStatusInfo(stdout, kInitStatus);
+    PrintStatus(stdout, kInitStatus);
   }
 
   // Create the shaders.
@@ -77,8 +78,42 @@ int main() {
   glDeleteShader(v_shader);
   glDeleteShader(f_shader);
 
+  // Create the quad data.
+  // clang-format off
+  const GLfloat kVertices[] = {
+      -1.0f, -1.0f,
+      -1.0f,  1.0f,
+       1.0f,  1.0f,
+       1.0f, -1.0f
+  };
+
+  const GLshort kIndices[] = {
+      0, 1, 3,
+      1, 2, 3
+  };
+  // clang-format on
+
+  GLuint buffers[2];
+  glGenBuffers(2, buffers);
+
+  glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(kVertices), kVertices, GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(kIndices), kIndices,
+               GL_STATIC_DRAW);
+
+  // Vertex layout.
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), NULL);
+
   // Create the framebuffer and use it.
+  GLuint fb;
+  glGenFramebuffers(1, &fb);
+
   // Render a quad on the framebuffer.
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+
   // Retrieve the image data from the framebuffer.
   // Write the image data to a file.
 
@@ -117,7 +152,7 @@ Status Init() {
 
 const char *GetStatusInfo(int status_code);
 
-void PrintStatusInfo(FILE *stream, int status_code) {
+void PrintStatus(FILE *stream, int status_code) {
   const char *const kStatusInfo = GetStatusInfo(status_code);
   fprintf(stream, "%s\n", kStatusInfo);
 }
