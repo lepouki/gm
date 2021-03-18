@@ -196,7 +196,7 @@ Status WriteMandelbrotToOutput() {
   const void *kTexCoordsOffset = (void *)(2 * sizeof(GLfloat));
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, kStride, kTexCoordsOffset);
-  PRINT_GL_ERROR_STATUS("vertex attrib");
+  PRINT_GL_ERROR_STATUS("vertex attribs");
 
   glBindVertexArray(0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
