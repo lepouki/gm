@@ -8,6 +8,11 @@
 
 #include "context/context.h"
 
+/**
+ * Assumes it is being called in a valid OpenGL context.
+ */
+void gmPrintGlInfo_();
+
 gmError gmRun(const gmConfig *config) {
   gmError error;
 
@@ -15,17 +20,21 @@ gmError gmRun(const gmConfig *config) {
   error = gmCreateContext_(&context);
   if (!error) {
     gmMakeContextCurrent_(&context);
-
-    const char *const kRenderer = (const char *)glGetString(GL_RENDERER);
-    const char *const kVendor = (const char *)glGetString(GL_VENDOR);
-    const char *const kVersion = (const char *)glGetString(GL_VERSION);
-
-    printf("OpenGL info:\n- Renderer: %s\n- Vendor: %s\n- Version: %s\n",
-           kRenderer, kVendor, kVersion);
-
+    gmPrintGlInfo_();
     gmClearCurrentContext_();
     gmDeleteContext_(&context);
   }
 
   return error;
+}
+
+#define GM_GET_GL_STRING_(name) (const char *)glGetString(name)
+
+void gmPrintGlInfo_() {
+  const char *const kRenderer = GM_GET_GL_STRING_(GL_RENDERER);
+  const char *const kVendor = GM_GET_GL_STRING_(GL_VENDOR);
+  const char *const kVersion = GM_GET_GL_STRING_(GL_VERSION);
+
+  printf("OpenGL info:\n  Renderer: %s\n  Vendor: %s\n  Version: %s\n",
+         kRenderer, kVendor, kVersion);
 }
