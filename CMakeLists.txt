@@ -10,10 +10,13 @@ target_sources(gm
   PUBLIC
   inc/gm/error.h
   inc/gm/gm.h
+  inc/gm/setup.h
 
   PRIVATE
   src/context/context.c
   src/context/context.h
+  src/resources/resources.h
+  src/resources/resources.c
   src/gm.c
   src/main.c
   src/error.c)

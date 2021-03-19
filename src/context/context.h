@@ -4,12 +4,16 @@
 #pragma once
 
 #include "gm/error.h"
+#include "gm/setup.h"
 
-typedef struct GLFWwindow GLFWwindow;
+typedef struct GLFWwindow *gmWindow_;
 
 typedef struct gmContext_ {
-  GLFWwindow *window;
+  gmWindow_ window;
 } gmContext_;
 
-gmError gmNewContext_(gmContext_ *out_context);
+gmError gmCreateContext_(GM_OUT_PARAM gmContext_ *context);
 void gmDeleteContext_(const gmContext_ *context);
+
+void gmClearCurrentContext_();
+void gmMakeContextCurrent_(const gmContext_ *context);

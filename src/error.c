@@ -11,6 +11,8 @@ const char *gmGetErrorMessage(gmError status) {
       return "Failed to initialize GLFW";
     case gmError_WindowCreationFailed:
       return "Failed to create the dummy window";
+    case gmError_GlLoadingFailed:
+      return "Failed to load OpenGL functions";
     default:
       return "Unknown error";
   }
