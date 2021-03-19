@@ -1,7 +1,7 @@
 // Copyright (c) Amaël Marquez.  Licensed under the MIT License.
 // See the LICENSE file at the root of the repository for all the details.
 
-#include "gl_error.h"
+#include "gl-error.h"
 
 const char *gmGetGlErrorStr_(GLenum error) {
   switch (error) {

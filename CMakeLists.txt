@@ -15,8 +15,8 @@ target_sources(gm
   PRIVATE
   src/context/context.c
   src/context/context.h
-  src/resources/gl_error.c
-  src/resources/gl_error.h
+  src/resources/gl-error.c
+  src/resources/gl-error.h
   src/resources/resources.h
   src/resources/resources.c
   src/gm.c
