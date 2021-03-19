@@ -9,7 +9,8 @@
 #define GM_OUT_PARAM
 
 #ifndef NDEBUG
+/**
+ * More explicit than `!NDEBUG`.
+ */
 #  define GM_DEBUG
-#else
-#  define GM_RELEASE
 #endif
