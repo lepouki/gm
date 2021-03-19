@@ -19,7 +19,7 @@ gmError gmCheckStatus_(GLuint object, GLenum status, gmGetivFunc_ getiv,
 #ifdef GM_DEBUG
     gmPrintInfo_(object, getiv, get_info_log);
 #endif
-    return gmError_ResourceStatusCheckFailed;
+    return gmError_StatusCheckFailed;
   }
 
   return gmError_Success;

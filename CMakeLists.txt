@@ -15,6 +15,9 @@ target_sources(gm
   PRIVATE
   src/context/context.c
   src/context/context.h
+  src/resources/program/shaders/fragment-shader.h
+  src/resources/program/shaders/shaders.h
+  src/resources/program/shaders/vertex-shader.h
   src/resources/program/check-status.c
   src/resources/program/check-status.h
   src/resources/program/program.c

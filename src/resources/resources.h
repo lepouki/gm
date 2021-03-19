@@ -8,20 +8,10 @@
 #include "gm/error.h"
 #include "gm/setup.h"
 #include "id.h"
-
-typedef struct gmModel_ {
-  gmId_ vertex_array;
-  gmId_ buffers[2];  // Vertex and index buffers.
-} gmModel_;
-
-typedef struct gmFramebuffer_ {
-  gmId_ id;
-  gmId_ color_render_buffer;
-} gmFramebuffer_;
+#include "program/program.h"
 
 typedef struct gmResources_ {
-  gmId_ program;
-  gmModel_ quad_model;
+  gmProgram_ program;
 } gmResources_;
 
 gmError gmCreateResources_(GM_OUT_PARAM gmResources_ *resources);

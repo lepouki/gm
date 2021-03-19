@@ -7,9 +7,7 @@
 #include "gm/setup.h"
 #include "resources/id.h"
 
-typedef struct gmProgram_ {
-  gmId_ id;
-} gmProgram_;
+typedef gmId_ gmProgram_;
 
 gmError gmCreateProgram_(GM_OUT_PARAM gmProgram_ *program);
 void gmDeleteProgram_(const gmProgram_ *program);

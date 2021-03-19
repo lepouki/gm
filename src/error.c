@@ -13,6 +13,8 @@ const char *gmGetErrorMessage(gmError error) {
       return "Failed to create the dummy window";
     case gmError_GlLoadingFailed:
       return "Failed to load OpenGL functions";
+    case gmError_StatusCheckFailed:
+      return "Resource status check failed";
     default:
       return "Unknown error";
   }

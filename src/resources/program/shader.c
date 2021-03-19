@@ -4,21 +4,32 @@
 #include "shader.h"
 
 #include <glad/glad.h>
+#include <stdlib.h>  // For NULL.
 
 #include "check-status.h"
 
 gmError gmCheckShaderCompileStatus_(const gmShader_ *shader);
 
-gmError gmCreateShader_(GM_OUT_PARAM gmShader_ *shader, gmShaderType_ type,
+gmError gmCreateShader_(gmShader_ *shader, gmShaderType_ type,
                         const char *source) {
-  return gmError_Success;
+  *shader = glCreateShader(type);
+
+  glShaderSource(*shader, 1, &source, NULL);
+  glCompileShader(*shader);
+
+  const gmError kError = gmCheckShaderCompileStatus_(shader);
+  if (kError) {
+    gmDeleteShader_(shader);
+  }
+
+  return kError;
 }
 
 gmError gmCheckShaderCompileStatus_(const gmShader_ *shader) {
-  return gmCheckStatus_(shader->id, GL_COMPILE_STATUS, glGetShaderiv,
+  return gmCheckStatus_(*shader, GL_COMPILE_STATUS, glGetShaderiv,
                         glGetShaderInfoLog);
 }
 
 void gmDeleteShader_(const gmShader_ *shader) {
-  glDeleteShader(shader->id);
+  glDeleteShader(*shader);
 }

@@ -10,13 +10,11 @@
 #include "resources/id.h"
 
 typedef enum gmShaderType_ {
-  gmShaderType_Vertex,
-  gmShaderType_Fragment
+  gmShaderType_Vertex_ = GL_VERTEX_SHADER,
+  gmShaderType_Fragment_ = GL_FRAGMENT_SHADER
 } gmShaderType_;
 
-typedef struct gmShader_ {
-  gmId_ id;
-} gmShader_;
+typedef gmId_ gmShader_;
 
 gmError gmCreateShader_(GM_OUT_PARAM gmShader_ *shader, gmShaderType_ type,
                         const char *source);
