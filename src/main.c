@@ -94,6 +94,13 @@ void gm_RenderImage(const gm_RenderResources *resources,
 void gm_BlitToFinalFramebuffer(const gm_RenderResources *resources,
                                const gm_ImageConfig *config);
 
+void gm_ReadImageData(void *out_data, const gm_RenderResources *resources,
+                      const gm_ImageConfig *config);
+
+int gm_WriteImageToFile(void *data, const gm_ImageConfig *config);
+
+void gm_Cleanup(void *data, const gm_RenderResources *resources);
+
 void gm_DestroyFramebuffer(const gm_Framebuffer *framebuffer);
 void gm_DestroyModel(const gm_Model *model);
 
@@ -121,26 +128,12 @@ gm_Status gm_Run(const gm_ImageConfig *config) {
 
   // Retrieve the image data from the framebuffer.
   unsigned char *data = malloc(config->size.x * config->size.y * 3);  // RGB.
-
-  glBindFramebuffer(GL_READ_FRAMEBUFFER,
-                    resources.final_framebuffer.framebuffer);
-
-  glReadBuffer(GL_COLOR_ATTACHMENT0);
-  glReadPixels(0, 0, config->size.x, config->size.y, GL_RGB, GL_UNSIGNED_BYTE,
-               data);
+  gm_ReadImageData(data, &resources, config);
 
   // Write the image data to a file.
-  const int kLineStride = 3 * config->size.x;
-  const int kResult = stbi_write_png("output.png", config->size.x,
-                                     config->size.y, 3, data, kLineStride);
+  const int kResult = gm_WriteImageToFile(data, config);
 
-  // Cleanup data before exiting.
-  free(data);
-  gm_DestroyFramebuffer(&resources.final_framebuffer);
-  gm_DestroyFramebuffer(&resources.render_framebuffer);
-  glDeleteProgram(resources.program);
-  gm_DestroyModel(&resources.quad_model);
-
+  gm_Cleanup(data, &resources);
   gm_Terminate();
 
   if (!kResult) {
@@ -467,6 +460,30 @@ void gm_BlitToFinalFramebuffer(const gm_RenderResources *resources,
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+}
+
+void gm_ReadImageData(void *out_data, const gm_RenderResources *resources,
+                      const gm_ImageConfig *config) {
+  glBindFramebuffer(GL_READ_FRAMEBUFFER,
+                    resources->final_framebuffer.framebuffer);
+
+  glReadBuffer(GL_COLOR_ATTACHMENT0);
+  glReadPixels(0, 0, config->size.x, config->size.y, GL_RGB, GL_UNSIGNED_BYTE,
+               out_data);
+}
+
+int gm_WriteImageToFile(void *data, const gm_ImageConfig *config) {
+  const int kLineStride = 3 * config->size.x;
+  return stbi_write_png("output.png", config->size.x, config->size.y, 3, data,
+                        kLineStride);
+}
+
+void gm_Cleanup(void *data, const gm_RenderResources *resources) {
+  free(data);
+  gm_DestroyFramebuffer(&resources->final_framebuffer);
+  gm_DestroyFramebuffer(&resources->render_framebuffer);
+  glDeleteProgram(resources->program);
+  gm_DestroyModel(&resources->quad_model);
 }
 
 void gm_DestroyFramebuffer(const gm_Framebuffer *framebuffer) {
