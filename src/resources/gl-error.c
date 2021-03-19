@@ -3,7 +3,7 @@
 
 #include "gl-error.h"
 
-const char *gmGetGlErrorStr_(GLenum error) {
+const char *gmGetGlErrorMessage_(GLenum error) {
   switch (error) {
     case GL_NO_ERROR:
       return "(GL_NO_ERROR) No error has been recorded";

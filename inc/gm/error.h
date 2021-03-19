@@ -11,7 +11,6 @@ typedef enum gmError {
 } gmError;
 
 /**
- * @return A human readable status message corresponding to the specified error
- * code.
+ * @return A human readable message corresponding to the specified error code.
  */
 const char *gmGetErrorMessage(gmError error);

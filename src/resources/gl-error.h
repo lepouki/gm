@@ -7,24 +7,28 @@
 
 #include "gm/setup.h"
 
-const char *gmGetGlErrorStr_(GLenum error);
+/**
+ * @return A human readable message corresponding to the specified OpenGL error
+ * code.
+ */
+const char *gmGetGlErrorMessage_(GLenum error);
 
 #ifdef GM_DEBUG
 /**
  * Executes the specified statement and prints an error message if any error
  * occurred.
  */
-#  define GM_GL_CALL_(statement)                                \
-    {                                                           \
-      statement;                                                \
-      const int kError = glGetError();                          \
-      if (kError) {                                             \
-        const char *const kErrorStr = gmGetGlErrorStr_(kError); \
-        fprintf(stderr,                                         \
-                "OpenGL error: %s, file " __FILE__              \
-                ", line " GM_STRINGIFY(__LINE__) "\n",          \
-                kErrorStr);                                     \
-      }                                                         \
+#  define GM_GL_CALL_(statement)                                        \
+    {                                                                   \
+      statement;                                                        \
+      const int kError = glGetError();                                  \
+      if (kError) {                                                     \
+        const char *const kErrorMessage = gmGetGlErrorMessage_(kError); \
+        fprintf(stderr,                                                 \
+                "OpenGL error: %s, file " __FILE__                      \
+                ", line " GM_STRINGIFY(__LINE__) "\n",                  \
+                kErrorMessage);                                         \
+      }                                                                 \
     }
 #else
 #  define GM_GL_CALL_(...)
