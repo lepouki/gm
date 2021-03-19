@@ -1,7 +1,7 @@
 // Copyright (c) Amaël Marquez.  Licensed under the MIT License.
 // See the LICENSE file at the root of the repository for all the details.
 
-#define GM_USE_PROTOTYPE 0
+#define GM_USE_PROTOTYPE 1
 
 #if !GM_USE_PROTOTYPE
 
@@ -57,7 +57,7 @@ gm_Status gm_Run(const gm_ImageConfig *config);
 void gm_PrintStatus(FILE *stream, int status_code);
 
 int main() {
-  const gm_ImageConfig kConfig = {.size = {.x = 500, .y = 500}, .samples = 32};
+  const gm_ImageConfig kConfig = {.size = {.x = 500, .y = 500}, .samples = 16};
   const int kStatus = gm_Run(&kConfig);
 
   if (kStatus) {

@@ -4,7 +4,7 @@ Very simple visualization of the Mandelbrot set run on the GPU.
 
 ## Example output
 
-The output is relatively simple because this was a school project and I can't be bothered.
+Example image generated using 16 samples.
 
 ![Example image.](example.png "Example image.")
 
