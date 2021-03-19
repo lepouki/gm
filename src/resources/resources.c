@@ -4,7 +4,10 @@
 #include "resources.h"
 
 gmError gmCreateResources_(GM_OUT_PARAM gmResources_ *resources) {
+
   return gmError_Success;
 }
 
-void gmDeleteResources_(const gmResources_ *resources) {}
+void gmDeleteResources_(const gmResources_ *resources) {
+
+}

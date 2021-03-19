@@ -1,0 +1,43 @@
+// Copyright (c) Amaël Marquez.  Licensed under the MIT License.
+// See the LICENSE file at the root of the repository for all the details.
+
+#include "check-status.h"
+
+#include "gm/setup.h"
+
+#ifdef GM_DEBUG
+void gmPrintInfo_(GLuint object, gmGetivFunc_ getiv,
+                  gmGetInfoLogFunc_ get_info_log);
+#endif
+
+gmError gmCheckStatus_(GLuint object, GLenum status, gmGetivFunc_ getiv,
+                       gmGetInfoLogFunc_ get_info_log) {
+  int status_value;
+  getiv(object, status, &status_value);
+
+  if (!status_value) {
+#ifdef GM_DEBUG
+    gmPrintInfo_(object, getiv, get_info_log);
+#endif
+    return gmError_ResourceStatusCheckFailed;
+  }
+
+  return gmError_Success;
+}
+
+#ifdef GM_DEBUG
+#  include <stdio.h>
+#  include <stdlib.h>
+
+void gmPrintInfo_(GLuint object, gmGetivFunc_ getiv,
+                  gmGetInfoLogFunc_ get_info_log) {
+  int length;
+  getiv(object, GL_INFO_LOG_LENGTH, &length);
+
+  GLchar *info_log = malloc(length);
+  get_info_log(object, length, NULL, info_log);
+
+  fprintf(stderr, "Status check failed:\n%s", info_log);
+  free(info_log);
+}
+#endif

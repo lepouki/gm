@@ -7,8 +7,7 @@
 
 #include "gm/error.h"
 #include "gm/setup.h"
-
-typedef GLuint gmId_;
+#include "id.h"
 
 typedef struct gmModel_ {
   gmId_ vertex_array;

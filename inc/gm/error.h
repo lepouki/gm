@@ -7,7 +7,8 @@ typedef enum gmError {
   gmError_Success,
   gmError_GlfwInitFailed,
   gmError_WindowCreationFailed,
-  gmError_GlLoadingFailed
+  gmError_GlLoadingFailed,
+  gmError_ResourceStatusCheckFailed
 } gmError;
 
 /**

@@ -15,8 +15,15 @@ target_sources(gm
   PRIVATE
   src/context/context.c
   src/context/context.h
+  src/resources/program/check-status.c
+  src/resources/program/check-status.h
+  src/resources/program/program.c
+  src/resources/program/program.h
+  src/resources/program/shader.c
+  src/resources/program/shader.h
   src/resources/gl-error.c
   src/resources/gl-error.h
+  src/resources/id.h
   src/resources/resources.h
   src/resources/resources.c
   src/gm.c
