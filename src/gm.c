@@ -27,7 +27,6 @@ gmError gmRenderImageToFile_(const gmConfig *config) {
   gmResources_ resources;
   error = gmCreateResources_(&resources);
   if (!error) {
-
     gmDeleteResources_(&resources);
   }
 

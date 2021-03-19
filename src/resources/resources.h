@@ -6,9 +6,9 @@
 #include <glad/glad.h>
 
 #include "gm/error.h"
-#include "gm/setup.h"
 #include "id.h"
 #include "program/program.h"
+#include "setup.h"
 
 typedef struct gmResources_ {
   gmProgram_ program;

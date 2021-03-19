@@ -4,8 +4,8 @@
 #pragma once
 
 #include "gm/error.h"
-#include "gm/setup.h"
 #include "resources/id.h"
+#include "setup.h"
 
 typedef gmId_ gmProgram_;
 

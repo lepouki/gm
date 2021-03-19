@@ -4,7 +4,7 @@
 #pragma once
 
 #include "gm/error.h"
-#include "gm/setup.h"
+#include "setup.h"
 
 typedef struct GLFWwindow *gmWindow_;
 

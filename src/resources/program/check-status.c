@@ -3,7 +3,7 @@
 
 #include "check-status.h"
 
-#include "gm/setup.h"
+#include "setup.h"
 
 #ifdef GM_DEBUG
 void gmPrintInfo_(GLuint object, gmGetivFunc_ getiv,

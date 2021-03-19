@@ -8,7 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
-#include "gm/setup.h"
+#include "setup.h"
 
 gmError gmInitGlfw_();
 gmError gmLoadGl_(GM_OUT_PARAM gmContext_ *context);

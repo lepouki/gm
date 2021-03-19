@@ -1,7 +1,7 @@
 // Copyright (c) Amaël Marquez.  Licensed under the MIT License.
 // See the LICENSE file at the root of the repository for all the details.
 
-#define GM_USE_PROTOTYPE 1
+#define GM_USE_PROTOTYPE 0
 
 #if !GM_USE_PROTOTYPE
 

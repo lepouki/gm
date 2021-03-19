@@ -3,7 +3,7 @@
 
 #include "resources.h"
 
-gmError gmCreateResources_(GM_OUT_PARAM gmResources_ *resources) {
+gmError gmCreateResources_(gmResources_ *resources) {
   gmError error;
 
   error = gmCreateProgram_(&resources->program);

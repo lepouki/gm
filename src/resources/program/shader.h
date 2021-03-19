@@ -6,8 +6,8 @@
 #include <glad/glad.h>
 
 #include "gm/error.h"
-#include "gm/setup.h"
 #include "resources/id.h"
+#include "setup.h"
 
 typedef enum gmShaderType_ {
   gmShaderType_Vertex_ = GL_VERTEX_SHADER,
