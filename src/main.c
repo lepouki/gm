@@ -11,15 +11,14 @@
 
 int main() {
   gmConfig config = {.image_output_filepath = "output.png"};
-  const gmError kError = gmRun(&config);
 
-  if (!kError) {
-    return gmError_Success;
-  } else {
+  const gmError kError = gmRun(&config);
+  if (kError) {
     const char *const kErrorMessage = gmGetErrorMessage(kError);
     fprintf(stderr, "Error: %s", kErrorMessage);
-    return kError;
   }
+
+  return kError;
 }
 
 #else
