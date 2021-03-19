@@ -2,7 +2,27 @@
 // See the LICENSE file at the root of the repository for all the details.
 
 #define GM_USE_PROTOTYPE 0
-#if GM_USE_PROTOTYPE
+
+#if !GM_USE_PROTOTYPE
+
+#  include <stdio.h>
+
+#  include "gm/gm.h"
+
+int main() {
+  gmConfig config = {.image_output_filepath = "output.png"};
+  const gmError kError = gmRun(&config);
+
+  if (!kError) {
+    return gmError_Success;
+  } else {
+    const char *const kErrorMessage = gmGetErrorMessage(kError);
+    fprintf(stderr, "Error: %s", kErrorMessage);
+    return kError;
+  }
+}
+
+#else
 
 #  define GLFW_INCLUDE_NONE
 #  define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -537,25 +557,6 @@ const char *gm_GetStatusCodeMessage(int status_code) {
       return "Failed to write to the output image";
     default:
       return "Unknown status";
-  }
-}
-
-#else
-
-#  include "gm/gm.h"
-
-#  include <stdio.h>
-
-int main() {
-  gmConfig config = {.image_output_filepath = "output.png"};
-  const gmError kError = gmRun(&config);
-
-  if (!kError) {
-    return gmError_Success;
-  } else {
-    const char *const kErrorMessage = gmGetErrorMessage(kError);
-    fprintf(stderr, "Error: %s", kErrorMessage);
-    return kError;
   }
 }
 
