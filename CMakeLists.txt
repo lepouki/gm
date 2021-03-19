@@ -24,14 +24,12 @@ target_sources(gm
   src/resources/program/program.h
   src/resources/program/shader.c
   src/resources/program/shader.h
-  src/resources/gl-error.c
-  src/resources/gl-error.h
   src/resources/id.h
   src/resources/resources.h
   src/resources/resources.c
+  src/error.c
   src/gm.c
-  src/main.c
-  src/error.c)
+  src/main.c)
 
 add_subdirectory(vendor)
 target_link_libraries(gm PUBLIC glfw glad stb)
