@@ -88,6 +88,12 @@ gm_Status gm_CreateFramebuffer(gm_Framebuffer *out_framebuffer,
                                gm_FramebufferType type,
                                const gm_ImageConfig *config);
 
+void gm_RenderImage(const gm_RenderResources *resources,
+                    const gm_ImageConfig *config);
+
+void gm_BlitToFinalFramebuffer(const gm_RenderResources *resources,
+                               const gm_ImageConfig *config);
+
 void gm_DestroyFramebuffer(const gm_Framebuffer *framebuffer);
 void gm_DestroyModel(const gm_Model *model);
 
@@ -102,34 +108,16 @@ gm_Status gm_Run(const gm_ImageConfig *config) {
   // Create the quad data.
   gm_CreateQuadModel(&resources.quad_model);
 
+  // Still need proper cleanup.
   GM_PASS_OR_RETURN_STATUS(gm_CreateFramebuffer(
       &resources.render_framebuffer, gm_FramebufferType_MultiSampled, config));
-
-  // Not doing this results in the image missing some parts.
-  glViewport(0, 0, config->size.x, config->size.y);
-
-  // Render a quad on the framebuffer.
-  glBindFramebuffer(GL_FRAMEBUFFER, resources.render_framebuffer.framebuffer);
-  glUseProgram(resources.program);
-  glBindVertexArray(resources.quad_model.vertex_array);
-
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Create the final image buffer.
   GM_PASS_OR_RETURN_STATUS(gm_CreateFramebuffer(
       &resources.final_framebuffer, gm_FramebufferType_Regular, config));
 
-  // Blit the render data to the final framebuffer.
-  glBindFramebuffer(GL_READ_FRAMEBUFFER,
-                    resources.render_framebuffer.framebuffer);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
-                    resources.final_framebuffer.framebuffer);
-
-  glBlitFramebuffer(0, 0, config->size.x, config->size.y, 0, 0, config->size.x,
-                    config->size.y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  gm_RenderImage(&resources, config);
+  gm_BlitToFinalFramebuffer(&resources, config);
 
   // Retrieve the image data from the framebuffer.
   unsigned char *data = malloc(config->size.x * config->size.y * 3);  // RGB.
@@ -451,6 +439,34 @@ void gm_CreateRenderbuffer(gm_Framebuffer *framebuffer, gm_FramebufferType type,
   }
 
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
+}
+
+void gm_RenderImage(const gm_RenderResources *resources,
+                    const gm_ImageConfig *config) {
+  // Not doing this results in the image missing some parts.
+  glViewport(0, 0, config->size.x, config->size.y);
+
+  // Render a quad on the framebuffer.
+  glBindFramebuffer(GL_FRAMEBUFFER, resources->render_framebuffer.framebuffer);
+  glUseProgram(resources->program);
+  glBindVertexArray(resources->quad_model.vertex_array);
+
+  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void gm_BlitToFinalFramebuffer(const gm_RenderResources *resources,
+                               const gm_ImageConfig *config) {
+  glBindFramebuffer(GL_READ_FRAMEBUFFER,
+                    resources->render_framebuffer.framebuffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                    resources->final_framebuffer.framebuffer);
+
+  glBlitFramebuffer(0, 0, config->size.x, config->size.y, 0, 0, config->size.x,
+                    config->size.y, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 void gm_DestroyFramebuffer(const gm_Framebuffer *framebuffer) {
