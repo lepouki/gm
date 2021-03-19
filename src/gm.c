@@ -3,15 +3,10 @@
 
 #include "gm/gm.h"
 
-#include <glad/glad.h>
-#include <stdio.h>  // Temporary.
-
 #include "context/context.h"
+#include "resources/resources.h"
 
-/**
- * Assumes it is being called in a valid OpenGL context.
- */
-void gmPrintGlInfo_();
+gmError gmRenderImage_(const gmConfig *config);
 
 gmError gmRun(const gmConfig *config) {
   gmError error;
@@ -19,22 +14,20 @@ gmError gmRun(const gmConfig *config) {
   gmContext_ context;
   error = gmCreateContext_(&context);
   if (!error) {
-    gmMakeContextCurrent_(&context);
-    gmPrintGlInfo_();
-    gmClearCurrentContext_();
+    error = gmRenderImage_(config);
     gmDeleteContext_(&context);
   }
 
   return error;
 }
 
-#define GM_GET_GL_STRING_(name) (const char *)glGetString(name)
+gmError gmRenderImage_(const gmConfig *config) {
+  gmError error;
 
-void gmPrintGlInfo_() {
-  const char *const kRenderer = GM_GET_GL_STRING_(GL_RENDERER);
-  const char *const kVendor = GM_GET_GL_STRING_(GL_VENDOR);
-  const char *const kVersion = GM_GET_GL_STRING_(GL_VERSION);
+  gmResources_ resources;
+  error = gmCreateResources_(&resources);
+  if (!error) {
+  }
 
-  printf("OpenGL info:\n  Renderer: %s\n  Vendor: %s\n  Version: %s\n",
-         kRenderer, kVendor, kVersion);
+  return error;
 }

@@ -7,3 +7,12 @@
  * Indicates that a parameter is used as output.
  */
 #define GM_OUT_PARAM
+
+#ifndef NDEBUG
+#  define GM_DEBUG
+#else
+#  define GM_RELEASE
+#endif
+
+#define GM_STRINGIFY_HELPER_(x) #x
+#define GM_STRINGIFY(x) GM_STRINGIFY_HELPER_(x)

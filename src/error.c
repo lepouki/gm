@@ -3,8 +3,8 @@
 
 #include "gm/error.h"
 
-const char *gmGetErrorMessage(gmError status) {
-  switch (status) {
+const char *gmGetErrorMessage(gmError error) {
+  switch (error) {
     case gmError_Success:
       return "Success";
     case gmError_GlfwInitFailed:
