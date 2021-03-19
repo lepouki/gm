@@ -1,13 +1,19 @@
-#define GLFW_INCLUDE_NONE
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+// Copyright (c) Amaël Marquez.  Licensed under the MIT License.
+// See the LICENSE file at the root of the repository for all the details.
 
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
-#include <stb/stb_image_write.h>
-#include <stdio.h>
-#include <stdlib.h>
+#define GM_USE_PROTOTYPE 0
+#if GM_USE_PROTOTYPE
 
-typedef enum {
+#  define GLFW_INCLUDE_NONE
+#  define STB_IMAGE_WRITE_IMPLEMENTATION
+
+#  include <GLFW/glfw3.h>
+#  include <glad/glad.h>
+#  include <stb/stb_image_write.h>
+#  include <stdio.h>
+#  include <stdlib.h>
+
+typedef enum gm_Status {
   gm_Status_Success,
   gm_Status_GlfwInitFailed,
   gm_Status_DummyWindowCreationFailed,
@@ -32,7 +38,7 @@ gm_Status gm_Run(const gm_ImageConfig *config);
 void gm_PrintStatus(FILE *stream, int status_code);
 
 int main() {
-  const gm_ImageConfig kConfig = {.size = {.x = 500, .y = 500}, .samples = 8};
+  const gm_ImageConfig kConfig = {.size = {.x = 500, .y = 500}, .samples = 32};
   const int kStatus = gm_Run(&kConfig);
 
   if (kStatus) {
@@ -44,16 +50,16 @@ int main() {
   return kStatus;
 }
 
-#define GM_FORCE_SEMICOLON_ (void)0
+#  define GM_FORCE_SEMICOLON_ (void)0
 
-#define GM_PASS_OR_RETURN_STATUS(statement) \
-  {                                         \
-    const gm_Status kStatus = statement;    \
-    if (kStatus) {                          \
-      return kStatus;                       \
-    }                                       \
-  }                                         \
-  GM_FORCE_SEMICOLON_
+#  define GM_PASS_OR_RETURN_STATUS(statement) \
+    {                                         \
+      const gm_Status kStatus = statement;    \
+      if (kStatus) {                          \
+        return kStatus;                       \
+      }                                       \
+    }                                         \
+    GM_FORCE_SEMICOLON_
 
 gm_Status gm_Init();
 
@@ -97,7 +103,7 @@ void gm_BlitToFinalFramebuffer(const gm_RenderResources *resources,
 void gm_ReadImageData(void *out_data, const gm_RenderResources *resources,
                       const gm_ImageConfig *config);
 
-int gm_WriteImageToFile(void *data, const gm_ImageConfig *config);
+gm_Status gm_WriteImageToFile(void *data, const gm_ImageConfig *config);
 
 void gm_Cleanup(void *data, const gm_RenderResources *resources);
 
@@ -131,14 +137,14 @@ gm_Status gm_Run(const gm_ImageConfig *config) {
   gm_ReadImageData(data, &resources, config);
 
   // Write the image data to a file.
-  const int kResult = gm_WriteImageToFile(data, config);
+  const gm_Status kStatus = gm_WriteImageToFile(data, config);
 
   gm_Cleanup(data, &resources);
   gm_Terminate();
 
-  if (!kResult) {
+  if (kStatus) {
     fputs("Failed to write image\n", stderr);
-    return gm_Status_ImageOutputFailed;
+    return kStatus;
   }
 
   return gm_Status_Success;
@@ -472,10 +478,14 @@ void gm_ReadImageData(void *out_data, const gm_RenderResources *resources,
                out_data);
 }
 
-int gm_WriteImageToFile(void *data, const gm_ImageConfig *config) {
+gm_Status gm_WriteImageToFile(void *data, const gm_ImageConfig *config) {
   const int kLineStride = 3 * config->size.x;
-  return stbi_write_png("output.png", config->size.x, config->size.y, 3, data,
-                        kLineStride);
+  if (stbi_write_png("output.png", config->size.x, config->size.y, 3, data,
+                     kLineStride)) {
+    return gm_Status_Success;
+  } else {
+    return gm_Status_ImageOutputFailed;
+  }
 }
 
 void gm_Cleanup(void *data, const gm_RenderResources *resources) {
@@ -529,3 +539,24 @@ const char *gm_GetStatusCodeMessage(int status_code) {
       return "Unknown status";
   }
 }
+
+#else
+
+#  include "gm/gm.h"
+
+#  include <stdio.h>
+
+int main() {
+  gmConfig config = {.image_output_filepath = "output.png"};
+  const gmError kError = gmRun(&config);
+
+  if (!kError) {
+    return gmError_Success;
+  } else {
+    const char *const kErrorMessage = gmGetErrorMessage(kError);
+    fprintf(stderr, "Error: %s", kErrorMessage);
+    return kError;
+  }
+}
+
+#endif
