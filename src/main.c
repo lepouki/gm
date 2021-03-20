@@ -6,6 +6,7 @@
 #include "gm/gm.h"
 
 int main() {
+  // Note that your GPU might not support as many as 32 samples.
   const gmConfig kConfig = {
       .image_config = {.size = {.w = 500, .h = 500}, .samples = 32},
       .image_output_filepath = "output.png"};
