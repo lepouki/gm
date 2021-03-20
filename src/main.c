@@ -6,11 +6,11 @@
 #include "gm/gm.h"
 
 int main() {
-  gmConfig config = {
+  const gmConfig kConfig = {
       .image_config = {.size = {.w = 500, .h = 500}, .samples = 32},
       .image_output_filepath = "output.png"};
 
-  const gmError kError = gmRun(&config);
+  const gmError kError = gmRun(&kConfig);
   if (kError) {
     const char *const kErrorMessage = gmGetErrorMessage(kError);
     fprintf(stderr, "Error: %s\n", kErrorMessage);
