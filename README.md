@@ -26,7 +26,8 @@ mkdir build
 # Run CMake inside and compile the executable.
 # The debug build has some additional output so you can add the CMake option
 # `-DCMAKE_BUILD_TYPE=Release` to build in release mode.
-cmake build && make
+cd build
+cmake ../ && make
 ```
 
 Or using the CMake GUI.

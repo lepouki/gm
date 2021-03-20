@@ -3,5 +3,5 @@
 
 #pragma once
 
-#include "shaders/fragment-shader.h"
-#include "shaders/vertex-shader.h"
+#include "fragment-shader.h"
+#include "vertex-shader.h"
