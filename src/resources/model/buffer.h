@@ -23,5 +23,8 @@ typedef enum gmBufferTarget_ {
 void gmClearCurrentBuffer_(gmBufferTarget_ type);
 void gmUseBufferAs_(const gmBuffer_ *buffer, gmBufferTarget_ type);
 
+/**
+ * Loads the specified data to the buffer bound to the specified buffer target.
+ */
 void gmLoadBufferDataAs_(gmBufferTarget_ type, size_t byte_count,
                          const void *data);

@@ -27,6 +27,10 @@ void gmDeleteFrameBuffer_(const gmFrameBuffer_ *frame_buffer);
 typedef enum gmFrameBufferTarget_ {
   gmFramebufferTarget_Read_ = GL_READ_FRAMEBUFFER,
   gmFramebufferTarget_Draw_ = GL_DRAW_FRAMEBUFFER,
+
+  /**
+   * Acts as both read and draw frame-buffers.
+   */
   gmFrameBufferTarget_Framebuffer_ = GL_FRAMEBUFFER
 } gmFrameBufferTarget_;
 

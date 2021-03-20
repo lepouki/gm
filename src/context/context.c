@@ -54,6 +54,9 @@ gmError gmLoadGl_(GM_OUT_PARAM gmContext_ *context) {
   return error;
 }
 
+/**
+ * GLFW hints are properties applied on windows when created.
+ */
 void gmSetWindowHints_();
 
 gmError gmCreateWindow_(GM_OUT_PARAM gmWindow_ *window) {
