@@ -45,7 +45,6 @@ gmError gmCreateProgramShaders_(GM_OUT_PARAM gmProgramShaders_ *shaders) {
 
   error = gmCreateShader_(&shaders->vertex, gmShaderType_Vertex_,
                           kGmVertexShaderSource_);
-
   if (!error) {
     error = gmCreateShader_(&shaders->fragment, gmShaderType_Fragment_,
                             kGmFragmentShaderSource_);
