@@ -3,14 +3,18 @@
 
 #include "check-status.h"
 
+#include <glad/glad.h>
+
+#include "gm/error.h"
+#include "resources/id.h"
 #include "setup.h"
 
 #ifdef GM_DEBUG
-void gmPrintInfo_(GLuint object, gmGetivFunc_ getiv,
+void gmPrintInfo_(gmId_ object, gmGetivFunc_ getiv,
                   gmGetInfoLogFunc_ get_info_log);
 #endif
 
-gmError gmCheckStatus_(GLuint object, GLenum status, gmGetivFunc_ getiv,
+gmError gmCheckStatus_(gmId_ object, GLenum status, gmGetivFunc_ getiv,
                        gmGetInfoLogFunc_ get_info_log) {
   int status_value;
   getiv(object, status, &status_value);
@@ -29,7 +33,7 @@ gmError gmCheckStatus_(GLuint object, GLenum status, gmGetivFunc_ getiv,
 #  include <stdio.h>
 #  include <stdlib.h>
 
-void gmPrintInfo_(GLuint object, gmGetivFunc_ getiv,
+void gmPrintInfo_(gmId_ object, gmGetivFunc_ getiv,
                   gmGetInfoLogFunc_ get_info_log) {
   int length;
   getiv(object, GL_INFO_LOG_LENGTH, &length);

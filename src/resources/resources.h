@@ -6,7 +6,6 @@
 #include <glad/glad.h>
 
 #include "gm/error.h"
-#include "id.h"
 #include "model/model.h"
 #include "program/program.h"
 #include "setup.h"

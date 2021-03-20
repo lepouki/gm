@@ -6,6 +6,8 @@
 #include <glad/glad.h>
 
 #include "check-status.h"
+#include "gm/error.h"
+#include "setup.h"
 #include "shader.h"
 
 gmError gmCheckProgramLinkStatus(const gmProgram_ *program);
@@ -16,11 +18,13 @@ typedef struct gmProgramShaders_ {
 } gmProgramShaders_;
 
 gmError gmCreateProgramShaders_(GM_OUT_PARAM gmProgramShaders_ *shaders);
-gmError gmLinkProgram_(gmProgram_ *program, const gmProgramShaders_ *shaders);
+
+gmError gmLinkProgram_(GM_OUT_PARAM gmProgram_ *program,
+                       const gmProgramShaders_ *shaders);
 
 void gmDeleteProgramShaders_(const gmProgramShaders_ *shaders);
 
-gmError gmCreateProgram_(gmProgram_ *program) {
+gmError gmCreateProgram_(GM_OUT_PARAM gmProgram_ *program) {
   gmError error;
 
   gmProgramShaders_ shaders;
@@ -36,7 +40,7 @@ gmError gmCreateProgram_(gmProgram_ *program) {
 // These files contain the shader sources.
 #include "shaders/shaders.h"
 
-gmError gmCreateProgramShaders_(gmProgramShaders_ *shaders) {
+gmError gmCreateProgramShaders_(GM_OUT_PARAM gmProgramShaders_ *shaders) {
   gmError error;
 
   error = gmCreateShader_(&shaders->vertex, gmShaderType_Vertex_,
@@ -53,7 +57,8 @@ gmError gmCreateProgramShaders_(gmProgramShaders_ *shaders) {
   return error;
 }
 
-gmError gmLinkProgram_(gmProgram_ *program, const gmProgramShaders_ *shaders) {
+gmError gmLinkProgram_(GM_OUT_PARAM gmProgram_ *program,
+                       const gmProgramShaders_ *shaders) {
   *program = glCreateProgram();
 
   glAttachShader(*program, shaders->vertex);

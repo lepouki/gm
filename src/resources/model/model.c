@@ -7,11 +7,13 @@
 #include <stdint.h>  // For intptr_t.
 
 #include "buffer.h"
+#include "gm/error.h"
+#include "setup.h"
 
 void gmLoadQuadData_(const gmModel_ *model);
 void gmSpecifyModelBindings_(const gmModel_ *model);
 
-gmError gmCreateQuadModel_(gmModel_ *model) {
+gmError gmCreateQuadModel_(GM_OUT_PARAM gmModel_ *model) {
   gmError error;
 
   glGenVertexArrays(1, &model->vertex_array);
@@ -34,11 +36,11 @@ void gmLoadQuadData_(const gmModel_ *model) {
   gmUseBufferAs_(&model->buffers[0], gmBufferType_Vertex_);
   gmUseBufferAs_(&model->buffers[1], gmBufferType_Index_);
 
-  gmLoadBufferDataAs_(gmBufferType_Vertex_, &model->buffers[0],
-                      sizeof(kGmQuadVertices_), kGmQuadVertices_);
+  gmLoadBufferDataAs_(gmBufferType_Vertex_, sizeof(kGmQuadVertices_),
+                      kGmQuadVertices_);
 
-  gmLoadBufferDataAs_(gmBufferType_Index_, &model->buffers[1],
-                      sizeof(kGmQuadIndices_), kGmQuadIndices_);
+  gmLoadBufferDataAs_(gmBufferType_Index_, sizeof(kGmQuadIndices_),
+                      kGmQuadIndices_);
 
   gmClearCurrentBuffer_(gmBufferType_Vertex_);
   gmClearCurrentBuffer_(gmBufferType_Index_);
@@ -135,7 +137,7 @@ size_t gmCalculateVertexStride_(size_t count,
 }
 
 void gmDeleteModel_(const gmModel_ *model) {
-  glDeleteBuffers(2, model->buffers);
+  gmDeleteBuffers_(2, model->buffers);
   glDeleteVertexArrays(1, &model->vertex_array);
 }
 

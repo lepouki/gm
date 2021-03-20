@@ -4,6 +4,7 @@
 #include "gm/gm.h"
 
 #include "context/context.h"
+#include "gm/error.h"
 #include "resources/resources.h"
 
 gmError gmRenderImageToFile_(const gmConfig *config);

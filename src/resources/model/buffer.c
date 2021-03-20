@@ -5,10 +5,14 @@
 
 #include <glad/glad.h>
 
+#include "gm/error.h"
+#include "setup.h"
+
 gmError gmCreateBuffers_(size_t count, GM_OUT_PARAM gmBuffer_ *buffers) {
   glGenBuffers(count, buffers);
   return gmError_Success;
 }
+
 void gmDeleteBuffers_(size_t count, const gmBuffer_ *buffers) {
   glDeleteBuffers(count, buffers);
 }
@@ -21,7 +25,7 @@ void gmUseBufferAs_(const gmBuffer_ *buffer, gmBufferType_ type) {
   glBindBuffer(type, *buffer);
 }
 
-void gmLoadBufferDataAs_(gmBufferType_ type, const gmBuffer_ *buffer,
-                         size_t byte_count, const void *data) {
+void gmLoadBufferDataAs_(gmBufferType_ type, size_t byte_count,
+                         const void *data) {
   glBufferData(type, byte_count, data, GL_STATIC_DRAW);
 }

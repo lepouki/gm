@@ -3,9 +3,14 @@
 
 #include "resources.h"
 
-gmError gmCreateRenderData_(gmRenderData_ *render_data);
+#include "gm/error.h"
+#include "model/model.h"
+#include "program/program.h"
+#include "setup.h"
 
-gmError gmCreateResources_(gmResources_ *resources) {
+gmError gmCreateRenderData_(GM_OUT_PARAM gmRenderData_ *render_data);
+
+gmError gmCreateResources_(GM_OUT_PARAM gmResources_ *resources) {
   gmError error;
 
   error = gmCreateRenderData_(&resources->render_data);
@@ -15,7 +20,7 @@ gmError gmCreateResources_(gmResources_ *resources) {
   return error;
 }
 
-gmError gmCreateRenderData_(gmRenderData_ *render_data) {
+gmError gmCreateRenderData_(GM_OUT_PARAM gmRenderData_ *render_data) {
   gmError error;
 
   error = gmCreateProgram_(&render_data->program);

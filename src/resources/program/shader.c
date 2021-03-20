@@ -7,10 +7,12 @@
 #include <stdlib.h>  // For NULL.
 
 #include "check-status.h"
+#include "gm/error.h"
+#include "setup.h"
 
 gmError gmCheckShaderCompileStatus_(const gmShader_ *shader);
 
-gmError gmCreateShader_(gmShader_ *shader, gmShaderType_ type,
+gmError gmCreateShader_(GM_OUT_PARAM gmShader_ *shader, gmShaderType_ type,
                         const char *source) {
   *shader = glCreateShader(type);
 

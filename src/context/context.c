@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <glad/glad.h>
 
+#include "gm/error.h"
 #include "setup.h"
 
 gmError gmInitGlfw_();
@@ -15,7 +16,7 @@ gmError gmLoadGl_(GM_OUT_PARAM gmContext_ *context);
 
 void gmCleanupGlfw_();
 
-gmError gmCreateContext_(gmContext_ *context) {
+gmError gmCreateContext_(GM_OUT_PARAM gmContext_ *context) {
   gmError error;
 
   // GLFW is initialized here because we're only using one context.
@@ -39,7 +40,7 @@ gmError gmGladLoadGl_(const gmContext_ *context);
 
 void gmDeleteWindow_(const gmWindow_ *window);
 
-gmError gmLoadGl_(gmContext_ *context) {
+gmError gmLoadGl_(GM_OUT_PARAM gmContext_ *context) {
   gmError error;
 
   error = gmCreateWindow_(&context->window);
@@ -55,7 +56,7 @@ gmError gmLoadGl_(gmContext_ *context) {
 
 void gmSetWindowHints_();
 
-gmError gmCreateWindow_(gmWindow_ *window) {
+gmError gmCreateWindow_(GM_OUT_PARAM gmWindow_ *window) {
   gmSetWindowHints_();
   *window = glfwCreateWindow(1, 1, "", NULL, NULL);
   return *window ? gmError_Success : gmError_WindowCreationFailed;

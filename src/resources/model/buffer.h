@@ -23,5 +23,5 @@ void gmDeleteBuffers_(size_t count, const gmBuffer_ *buffers);
 void gmClearCurrentBuffer_(gmBufferType_ type);
 void gmUseBufferAs_(const gmBuffer_ *buffer, gmBufferType_ type);
 
-void gmLoadBufferDataAs_(gmBufferType_ type, const gmBuffer_ *buffer,
-                         size_t byte_count, const void *data);
+void gmLoadBufferDataAs_(gmBufferType_ type, size_t byte_count,
+                         const void *data);

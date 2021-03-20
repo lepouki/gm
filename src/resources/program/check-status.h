@@ -6,9 +6,10 @@
 #include <glad/glad.h>
 
 #include "gm/error.h"
+#include "resources/id.h"
 
 typedef PFNGLGETSHADERIVPROC gmGetivFunc_;
 typedef PFNGLGETSHADERINFOLOGPROC gmGetInfoLogFunc_;
 
-gmError gmCheckStatus_(GLuint object, GLenum status, gmGetivFunc_ getiv,
+gmError gmCheckStatus_(gmId_ object, GLenum status, gmGetivFunc_ getiv,
                        gmGetInfoLogFunc_ get_info_log);
