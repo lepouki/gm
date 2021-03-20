@@ -12,16 +12,16 @@
 
 typedef gmId_ gmBuffer_;
 
-typedef enum gmBufferType_ {
-  gmBufferType_Vertex_ = GL_ARRAY_BUFFER,
-  gmBufferType_Index_ = GL_ELEMENT_ARRAY_BUFFER
-} gmBufferType_;
-
 gmError gmCreateBuffers_(size_t count, GM_OUT_PARAM gmBuffer_ *buffers);
 void gmDeleteBuffers_(size_t count, const gmBuffer_ *buffers);
 
-void gmClearCurrentBuffer_(gmBufferType_ type);
-void gmUseBufferAs_(const gmBuffer_ *buffer, gmBufferType_ type);
+typedef enum gmBufferTarget_ {
+  gmBufferTarget_Vertex_ = GL_ARRAY_BUFFER,
+  gmBufferTarget_Index_ = GL_ELEMENT_ARRAY_BUFFER
+} gmBufferTarget_;
 
-void gmLoadBufferDataAs_(gmBufferType_ type, size_t byte_count,
+void gmClearCurrentBuffer_(gmBufferTarget_ type);
+void gmUseBufferAs_(const gmBuffer_ *buffer, gmBufferTarget_ type);
+
+void gmLoadBufferDataAs_(gmBufferTarget_ type, size_t byte_count,
                          const void *data);

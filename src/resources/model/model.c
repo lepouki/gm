@@ -8,6 +8,7 @@
 
 #include "buffer.h"
 #include "gm/error.h"
+#include "resources/gl-error.h"
 #include "setup.h"
 
 void gmLoadQuadData_(const gmModel_ *model);
@@ -26,6 +27,8 @@ gmError gmCreateQuadModel_(GM_OUT_PARAM gmModel_ *model) {
     glDeleteVertexArrays(1, &model->vertex_array);
   }
 
+  GM_GL_PRINT_ERROR_();
+
   return error;
 }
 
@@ -33,17 +36,17 @@ gmError gmCreateQuadModel_(GM_OUT_PARAM gmModel_ *model) {
 #include "quad/quad.h"
 
 void gmLoadQuadData_(const gmModel_ *model) {
-  gmUseBufferAs_(&model->buffers[0], gmBufferType_Vertex_);
-  gmUseBufferAs_(&model->buffers[1], gmBufferType_Index_);
+  gmUseBufferAs_(&model->buffers[0], gmBufferTarget_Vertex_);
+  gmUseBufferAs_(&model->buffers[1], gmBufferTarget_Index_);
 
-  gmLoadBufferDataAs_(gmBufferType_Vertex_, sizeof(kGmQuadVertices_),
+  gmLoadBufferDataAs_(gmBufferTarget_Vertex_, sizeof(kGmQuadVertices_),
                       kGmQuadVertices_);
 
-  gmLoadBufferDataAs_(gmBufferType_Index_, sizeof(kGmQuadIndices_),
+  gmLoadBufferDataAs_(gmBufferTarget_Index_, sizeof(kGmQuadIndices_),
                       kGmQuadIndices_);
 
-  gmClearCurrentBuffer_(gmBufferType_Vertex_);
-  gmClearCurrentBuffer_(gmBufferType_Index_);
+  gmClearCurrentBuffer_(gmBufferTarget_Vertex_);
+  gmClearCurrentBuffer_(gmBufferTarget_Index_);
 }
 
 void gmSetQuadVertexAttributes_();
@@ -51,14 +54,14 @@ void gmSetQuadVertexAttributes_();
 void gmSpecifyModelBindings_(const gmModel_ *model) {
   gmUseModel_(model);
 
-  gmUseBufferAs_(&model->buffers[0], gmBufferType_Vertex_);
-  gmUseBufferAs_(&model->buffers[1], gmBufferType_Index_);
+  gmUseBufferAs_(&model->buffers[0], gmBufferTarget_Vertex_);
+  gmUseBufferAs_(&model->buffers[1], gmBufferTarget_Index_);
 
   gmSetQuadVertexAttributes_();
 
   gmClearCurrentModel_();
-  gmClearCurrentBuffer_(gmBufferType_Vertex_);
-  gmClearCurrentBuffer_(gmBufferType_Index_);
+  gmClearCurrentBuffer_(gmBufferTarget_Vertex_);
+  gmClearCurrentBuffer_(gmBufferTarget_Index_);
 }
 
 typedef enum gmVertexComponentType_ {

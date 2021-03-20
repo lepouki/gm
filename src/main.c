@@ -10,12 +10,14 @@
 #  include "gm/gm.h"
 
 int main() {
-  gmConfig config = {.image_output_filepath = "output.png"};
+  gmConfig config = {
+      .image_config = {.size = {.w = 500, .h = 500}, .samples = 4},
+      .image_output_filepath = "output.png"};
 
   const gmError kError = gmRun(&config);
   if (kError) {
     const char *const kErrorMessage = gmGetErrorMessage(kError);
-    fprintf(stderr, "Error: %s", kErrorMessage);
+    fprintf(stderr, "Error: %s\n", kErrorMessage);
   }
 
   return kError;

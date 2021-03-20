@@ -8,6 +8,7 @@
 
 #include "check-status.h"
 #include "gm/error.h"
+#include "resources/gl-error.h"
 #include "setup.h"
 
 gmError gmCheckShaderCompileStatus_(const gmShader_ *shader);
@@ -23,6 +24,8 @@ gmError gmCreateShader_(GM_OUT_PARAM gmShader_ *shader, gmShaderType_ type,
   if (kError) {
     gmDeleteShader_(shader);
   }
+
+  GM_GL_PRINT_ERROR_();
 
   return kError;
 }

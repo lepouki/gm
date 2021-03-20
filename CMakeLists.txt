@@ -14,6 +14,8 @@ target_sources(gm
   PRIVATE
   src/context/context.c
   src/context/context.h
+  src/resources/frame-buffer/frame-buffer.c
+  src/resources/frame-buffer/frame-buffer.h
   src/resources/model/quad/vertices.h
   src/resources/model/quad/quad.h
   src/resources/model/quad/indices.h
@@ -30,9 +32,11 @@ target_sources(gm
   src/resources/program/program.h
   src/resources/program/shader.c
   src/resources/program/shader.h
+  src/resources/gl-error.c
+  src/resources/gl-error.h
   src/resources/id.h
-  src/resources/resources.h
   src/resources/resources.c
+  src/resources/resources.h
   src/error.c
   src/gm.c
   src/main.c

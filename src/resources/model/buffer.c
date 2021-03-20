@@ -17,15 +17,15 @@ void gmDeleteBuffers_(size_t count, const gmBuffer_ *buffers) {
   glDeleteBuffers(count, buffers);
 }
 
-void gmClearCurrentBuffer_(gmBufferType_ type) {
-  glBindBuffer(type, 0);
+void gmClearCurrentBuffer_(gmBufferTarget_ target) {
+  glBindBuffer(target, 0);
 }
 
-void gmUseBufferAs_(const gmBuffer_ *buffer, gmBufferType_ type) {
-  glBindBuffer(type, *buffer);
+void gmUseBufferAs_(const gmBuffer_ *buffer, gmBufferTarget_ target) {
+  glBindBuffer(target, *buffer);
 }
 
-void gmLoadBufferDataAs_(gmBufferType_ type, size_t byte_count,
+void gmLoadBufferDataAs_(gmBufferTarget_ target, size_t byte_count,
                          const void *data) {
-  glBufferData(type, byte_count, data, GL_STATIC_DRAW);
+  glBufferData(target, byte_count, data, GL_STATIC_DRAW);
 }

@@ -7,6 +7,7 @@
 
 #include "check-status.h"
 #include "gm/error.h"
+#include "resources/gl-error.h"
 #include "setup.h"
 #include "shader.h"
 
@@ -33,6 +34,8 @@ gmError gmCreateProgram_(GM_OUT_PARAM gmProgram_ *program) {
     error = gmLinkProgram_(program, &shaders);
     gmDeleteProgramShaders_(&shaders);  // Don't need the shaders anymore.
   }
+
+  GM_GL_PRINT_ERROR_();
 
   return error;
 }

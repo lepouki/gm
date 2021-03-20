@@ -8,6 +8,11 @@
  */
 #define GM_OUT_PARAM
 
+/**
+ * Indicates that a variable may be unused.
+ */
+#define GM_MAYBE_UNUSED
+
 #ifndef NDEBUG
 /**
  * More explicit than `!NDEBUG`.

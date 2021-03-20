@@ -7,7 +7,7 @@
 #include "gm/error.h"
 #include "resources/resources.h"
 
-gmError gmRenderImageToFile_(const gmConfig *config);
+gmError gmRenderImageToFile_(const gmContext_ *context, const gmConfig *config);
 
 gmError gmRun(const gmConfig *config) {
   gmError error;
@@ -15,18 +15,22 @@ gmError gmRun(const gmConfig *config) {
   gmContext_ context;
   error = gmCreateContext_(&context);
   if (!error) {
-    error = gmRenderImageToFile_(config);
+    gmMakeContextCurrent_(&context);
+    error = gmRenderImageToFile_(&context, config);
+
+    gmClearCurrentContext_();
     gmDeleteContext_(&context);
   }
 
   return error;
 }
 
-gmError gmRenderImageToFile_(const gmConfig *config) {
+gmError gmRenderImageToFile_(const gmContext_ *context,
+                             const gmConfig *config) {
   gmError error;
 
   gmResources_ resources;
-  error = gmCreateResources_(&resources);
+  error = gmCreateResources_(&resources, &config->image_config);
   if (!error) {
     gmDeleteResources_(&resources);
   }

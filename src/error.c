@@ -15,6 +15,8 @@ const char *gmGetErrorMessage(gmError error) {
       return "Failed to load OpenGL functions";
     case gmError_StatusCheckFailed:
       return "Resource status check failed";
+    case gmError_IncompleteFrameBuffer:
+      return "Failed to create a frame-buffer";
     default:
       return "Unknown error";
   }

@@ -69,10 +69,6 @@ void gmSetWindowHints_() {
   glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 }
 
-#ifdef GM_DEBUG
-void gmPrintGlInfo_();
-#endif
-
 gmError gmGladLoadGl_(const gmContext_ *context) {
   gmMakeContextCurrent_(context);
 
@@ -80,29 +76,9 @@ gmError gmGladLoadGl_(const gmContext_ *context) {
   const gmError kError =
       gladLoadGLLoader(kLoader) ? gmError_Success : gmError_GlLoadingFailed;
 
-#ifdef GM_DEBUG
-  if (!kError) {
-    gmPrintGlInfo_();
-  }
-#endif
-
   gmClearCurrentContext_();
   return kError;
 }
-
-#ifdef GM_DEBUG
-#  include <stdio.h>
-#  define GM_GET_GL_STRING_(name) (const char *)glGetString(name)
-
-void gmPrintGlInfo_() {
-  const char *const kVersion = GM_GET_GL_STRING_(GL_VERSION);
-  const char *const kVendor = GM_GET_GL_STRING_(GL_VENDOR);
-  const char *const kRenderer = GM_GET_GL_STRING_(GL_RENDERER);
-
-  printf("OpenGL info:\n  Version: %s\n  Vendor: %s\n  Renderer: %s\n",
-         kVersion, kRenderer, kVendor);
-}
-#endif
 
 void gmDeleteWindow_(const gmWindow_ *window) {
   glfwDestroyWindow(*window);

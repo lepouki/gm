@@ -9,12 +9,12 @@
 #include "resources/id.h"
 #include "setup.h"
 
+typedef gmId_ gmShader_;
+
 typedef enum gmShaderType_ {
   gmShaderType_Vertex_ = GL_VERTEX_SHADER,
   gmShaderType_Fragment_ = GL_FRAGMENT_SHADER
 } gmShaderType_;
-
-typedef gmId_ gmShader_;
 
 gmError gmCreateShader_(GM_OUT_PARAM gmShader_ *shader, gmShaderType_ type,
                         const char *source);
