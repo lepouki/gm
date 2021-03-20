@@ -7,11 +7,17 @@
 
 #include "gm/error.h"
 #include "id.h"
+#include "model/model.h"
 #include "program/program.h"
 #include "setup.h"
 
-typedef struct gmResources_ {
+typedef struct gmRenderData_ {
+  gmModel_ quad;
   gmProgram_ program;
+} gmRenderData_;
+
+typedef struct gmResources_ {
+  gmRenderData_ render_data;
 } gmResources_;
 
 gmError gmCreateResources_(GM_OUT_PARAM gmResources_ *resources);

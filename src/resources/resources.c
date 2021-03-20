@@ -3,16 +3,39 @@
 
 #include "resources.h"
 
+gmError gmCreateRenderData_(gmRenderData_ *render_data);
+
 gmError gmCreateResources_(gmResources_ *resources) {
   gmError error;
 
-  error = gmCreateProgram_(&resources->program);
+  error = gmCreateRenderData_(&resources->render_data);
   if (!error) {
   }
 
   return error;
 }
 
+gmError gmCreateRenderData_(gmRenderData_ *render_data) {
+  gmError error;
+
+  error = gmCreateProgram_(&render_data->program);
+  if (!error) {
+    error = gmCreateQuadModel_(&render_data->quad);
+    if (error) {
+      gmDeleteProgram_(&render_data->program);
+    }
+  }
+
+  return error;
+}
+
+void gmDeleteRenderData_(const gmRenderData_ *render_data);
+
 void gmDeleteResources_(const gmResources_ *resources) {
-  gmDeleteProgram_(&resources->program);
+  gmDeleteRenderData_(&resources->render_data);
+}
+
+void gmDeleteRenderData_(const gmRenderData_ *render_data) {
+  gmDeleteModel_(&render_data->quad);
+  gmDeleteProgram_(&render_data->program);
 }

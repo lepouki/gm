@@ -10,11 +10,17 @@ target_sources(gm
   PUBLIC
   inc/gm/error.h
   inc/gm/gm.h
-  inc/gm/setup.h
 
   PRIVATE
   src/context/context.c
   src/context/context.h
+  src/resources/model/quad/vertices.h
+  src/resources/model/quad/quad.h
+  src/resources/model/quad/indices.h
+  src/resources/model/buffer.c
+  src/resources/model/buffer.h
+  src/resources/model/model.c
+  src/resources/model/model.h
   src/resources/program/shaders/fragment-shader.h
   src/resources/program/shaders/shaders.h
   src/resources/program/shaders/vertex-shader.h
@@ -29,7 +35,8 @@ target_sources(gm
   src/resources/resources.c
   src/error.c
   src/gm.c
-  src/main.c)
+  src/main.c
+  src/setup.h)
 
 add_subdirectory(vendor)
 target_link_libraries(gm PUBLIC glfw glad stb)
