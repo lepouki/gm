@@ -17,6 +17,8 @@ const char *gmGetErrorMessage(gmError error) {
       return "Resource status check failed";
     case gmError_IncompleteFrameBuffer:
       return "Failed to create a frame-buffer";
+    case gmError_ImageWriteFailed:
+      return "Failed to write the image";
     default:
       return "Unknown error";
   }

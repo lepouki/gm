@@ -89,6 +89,10 @@ void gmDeleteProgram_(const gmProgram_ *program) {
   glDeleteProgram(*program);
 }
 
+void gmClearCurrentProgram_() {
+  glUseProgram(0);
+}
+
 void gmUseProgram_(const gmProgram_ *program) {
   glUseProgram(*program);
 }

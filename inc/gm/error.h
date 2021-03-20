@@ -9,7 +9,8 @@ typedef enum gmError {
   gmError_WindowCreationFailed,
   gmError_GlLoadingFailed,
   gmError_StatusCheckFailed,
-  gmError_IncompleteFrameBuffer
+  gmError_IncompleteFrameBuffer,
+  gmError_ImageWriteFailed
 } gmError;
 
 /**

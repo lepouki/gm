@@ -12,4 +12,5 @@ typedef gmId_ gmProgram_;
 gmError gmCreateProgram_(GM_OUT_PARAM gmProgram_ *program);
 void gmDeleteProgram_(const gmProgram_ *program);
 
+void gmClearCurrentProgram_();
 void gmUseProgram_(const gmProgram_ *program);
