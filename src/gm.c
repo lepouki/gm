@@ -74,6 +74,7 @@ void gmRenderImageOnRenderFrameBuffer_(const gmResources_ *resources) {
   // Hard coded because we're only rendering one quad.
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
 
+  gmClearCurrentFrameBuffer_(gmFramebufferTarget_Draw_);
   gmClearCurrentModel_();
   gmClearCurrentProgram_();
 }
