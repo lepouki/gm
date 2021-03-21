@@ -49,6 +49,8 @@ gmError gmRenderImageToFile_(const gmConfig *config) {
   return error;
 }
 
+void gmRenderImageOnRenderFrameBuffer_(const gmResources_ *resources);
+
 void gmBlitToFinalFrameBuffer_(const gmRenderFrameBuffers_ *frame_buffers,
                                const gmIntSize *image_size);
 
@@ -56,7 +58,13 @@ void gmRenderImage_(const gmResources_ *resources,
                     const gmImageConfig *image_config) {
   // Not setting the viewport results in the image not rendering entirely.
   glViewport(0, 0, image_config->size.w, image_config->size.h);
+  gmRenderImageOnRenderFrameBuffer_(resources);
 
+  gmBlitToFinalFrameBuffer_(&resources->render_frame_buffers,
+                            &image_config->size);
+}
+
+void gmRenderImageOnRenderFrameBuffer_(const gmResources_ *resources) {
   gmUseFrameBufferAs_(&resources->render_frame_buffers.render,
                       gmFramebufferTarget_Draw_);
 
@@ -65,10 +73,6 @@ void gmRenderImage_(const gmResources_ *resources,
 
   // Hard coded because we're only rendering one quad.
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, NULL);
-
-  // Clears the draw frame-buffer.
-  gmBlitToFinalFrameBuffer_(&resources->render_frame_buffers,
-                            &image_config->size);
 
   gmClearCurrentModel_();
   gmClearCurrentProgram_();
