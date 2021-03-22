@@ -52,9 +52,9 @@ gmError gmCreateRenderFrameBuffers_(
     const gmImageConfig *image_config) {
   gmError error;
 
-  error =
-      gmCreateSampledFrameBuffer_(&render_frame_buffers->render,
-                                  &image_config->size, image_config->samples);
+  error = gmCreateSampledFrameBuffer_(&render_frame_buffers->render,
+                                      &image_config->size,
+                                      image_config->sample_count);
   if (!error) {
     error =
         gmCreateFrameBuffer_(&render_frame_buffers->final, &image_config->size);

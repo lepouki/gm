@@ -20,7 +20,7 @@ gmError gmCreateFrameBuffer_(GM_OUT_PARAM gmFrameBuffer_ *frame_buffer,
 
 gmError gmCreateSampledFrameBuffer_(GM_OUT_PARAM gmFrameBuffer_ *frame_buffer,
                                     const gmIntSize *size,
-                                    unsigned int samples);
+                                    gm_uint sample_count);
 
 void gmDeleteFrameBuffer_(const gmFrameBuffer_ *frame_buffer);
 

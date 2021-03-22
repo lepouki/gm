@@ -10,9 +10,15 @@ typedef struct gmIntSize {
   int h;
 } gmIntSize;
 
+/**
+ * Wrapper for `unsigned int`. Low-level type aliases use the snake-case naming
+ * format.
+ */
+typedef unsigned int gm_uint;
+
 typedef struct gmImageConfig {
+  gm_uint sample_count;
   gmIntSize size;
-  unsigned int samples;
 } gmImageConfig;
 
 typedef struct gmConfig {

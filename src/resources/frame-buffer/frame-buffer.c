@@ -12,16 +12,15 @@
  * Function used to create the current render-buffer's storage.
  */
 typedef void (*gmSetRenderBufferStorageFunc_)(
-    const gmIntSize *size, GM_MAYBE_UNUSED unsigned int samples);
+    const gmIntSize *size, GM_MAYBE_UNUSED gm_uint sample_count);
 
 void gmCreateRenderBuffer_(
     GM_OUT_PARAM gmId_ *render_buffer,
     gmSetRenderBufferStorageFunc_ set_render_buffer_storage,
-    const gmIntSize *size, unsigned int samples);
+    const gmIntSize *size, gm_uint sample_count);
 
 // The regular render-buffer storage does not need the sample info.
-void gmSetRegularRenderBufferStorage_(const gmIntSize *size,
-                                      unsigned int unused);
+void gmSetRegularRenderBufferStorage_(const gmIntSize *size, gm_uint unused);
 
 /**
  * Creates the frame-buffer and binds it to its color render-buffer.  This
@@ -41,18 +40,17 @@ gmError gmCreateFrameBuffer_(GM_OUT_PARAM gmFrameBuffer_ *frame_buffer,
 void gmCreateRenderBuffer_(
     GM_OUT_PARAM gmId_ *render_buffer,
     gmSetRenderBufferStorageFunc_ set_render_buffer_storage,
-    const gmIntSize *size, unsigned int samples) {
+    const gmIntSize *size, gm_uint sample_count) {
   glGenRenderbuffers(1, render_buffer);
 
   glBindRenderbuffer(GL_RENDERBUFFER, *render_buffer);
-  set_render_buffer_storage(size, GM_MAYBE_UNUSED samples);
+  set_render_buffer_storage(size, GM_MAYBE_UNUSED sample_count);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
   GM_GL_PRINT_ERROR_();
 }
 
-void gmSetRegularRenderBufferStorage_(const gmIntSize *size,
-                                      unsigned int unused) {
+void gmSetRegularRenderBufferStorage_(const gmIntSize *size, gm_uint unused) {
   (void)unused;
   glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, size->w, size->h);
 }
@@ -92,24 +90,42 @@ int gmIsFrameBufferComplete_(gmFrameBufferTarget_ target) {
 }
 
 void gmSetSampledRenderBufferStorage_(const gmIntSize *size,
-                                      unsigned int samples);
+                                      gm_uint sample_count);
 
 gmError gmCreateSampledFrameBuffer_(GM_OUT_PARAM gmFrameBuffer_ *frame_buffer,
                                     const gmIntSize *size,
-                                    unsigned int samples) {
+                                    gm_uint sample_count) {
   gmCreateRenderBuffer_(&frame_buffer->color_render_buffer,
-                        gmSetSampledRenderBufferStorage_, size, samples);
+                        gmSetSampledRenderBufferStorage_, size, sample_count);
 
   // Deletes the render-buffer on failure.
   return gmCreateColorFrameBuffer_(frame_buffer);
 }
 
+gm_uint gmCheckSampleCountSupport_(gm_uint sample_count);
+
 void gmSetSampledRenderBufferStorage_(const gmIntSize *size,
-                                      unsigned int samples) {
-  // No idea how to verify the max sample count, so just rely on the
-  // completeness check.
-  glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGB, size->w,
-                                   size->h);
+                                      gm_uint sample_count) {
+  // Check if the specified sample count is supported by the GPU.
+  sample_count = gmCheckSampleCountSupport_(sample_count);
+  glRenderbufferStorageMultisample(GL_RENDERBUFFER, sample_count, GL_RGB,
+                                   size->w, size->h);
+}
+
+gm_uint gmCheckSampleCountSupport_(gm_uint sample_count) {
+  gm_uint final_sample_count = sample_count;
+
+  int max_sample_count;
+  glGetIntegerv(GL_MAX_SAMPLES, &max_sample_count);
+
+  if (sample_count > max_sample_count) {
+    final_sample_count = (gm_uint)max_sample_count;
+
+    fprintf(stderr, "Unsupported sample count: reducing from %d to %d",
+            sample_count, max_sample_count);
+  }
+
+  return final_sample_count;
 }
 
 void gmDeleteFrameBuffer_(const gmFrameBuffer_ *frame_buffer) {
