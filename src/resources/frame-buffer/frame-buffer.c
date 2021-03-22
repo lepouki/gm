@@ -123,7 +123,7 @@ gm_uint gmCheckSampleCountSupport_(gm_uint sample_count) {
   if (sample_count > max_sample_count) {
     final_sample_count = (gm_uint)max_sample_count;
 
-    fprintf(stderr, "Unsupported sample count: reducing from %d to %d",
+    fprintf(stderr, "Unsupported sample count: reducing from %d to %d\n",
             sample_count, max_sample_count);
   }
 
