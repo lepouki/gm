@@ -103,10 +103,10 @@ gmError gmSaveImage_(const gmFrameBuffer_ *final_frame_buffer,
   unsigned char *const kImageData = malloc(kSize->w * kSize->h * 3);  // RGB.
 
   gmReadImageData_(kImageData, final_frame_buffer, &config->image_config.size);
-  const gmError kError = gmWriteImageToFile_(kImageData, config);
+  const gmError kWriteError = gmWriteImageToFile_(kImageData, config);
   free(kImageData);
 
-  return kError;
+  return kWriteError;
 }
 
 void gmReadImageData_(GM_OUT_PARAM void *image_data,
