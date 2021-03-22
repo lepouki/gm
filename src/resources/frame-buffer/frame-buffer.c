@@ -3,6 +3,8 @@
 
 #include "frame-buffer.h"
 
+#include <stdio.h>
+
 #include "gm/error.h"
 #include "gm/gm.h"
 #include "resources/gl-error.h"

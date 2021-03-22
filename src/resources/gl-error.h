@@ -13,6 +13,8 @@
  */
 const char *gmGetGlErrorMessage_(GLenum error);
 
+#define GM_FORCE_SEMICOLON_ (void)0
+
 #ifdef GM_DEBUG
 #  include <stdio.h>
 
@@ -20,8 +22,6 @@ const char *gmGetGlErrorMessage_(GLenum error);
 #  define GM_STRINGIFY_HELPER_(x) #x
 #  define GM_STRINGIFY_(x) GM_STRINGIFY_HELPER_(x)
 // clang-format on
-
-#  define GM_FORCE_SEMICOLON_ (void)0
 
 /**
  * Executes the specified statement and prints an error message if any error
